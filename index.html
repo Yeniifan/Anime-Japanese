@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPY×FAMILY 日本語 | S1E01</title>
+<style>
+  :root {
+    --bg: #FFFBEB;
+    --surface: #FFFFFF;
+    --border: #E5E7EB;
+    --text: #111827;
+    --text-sub: #6B7280;
+    --accent: #F59E0B;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────────────── */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: white; border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .logo { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; }
+  .ep-select {
+    font-size: 12px; font-family: inherit;
+    background: #F3F4F6; border: 1px solid var(--border);
+    border-radius: 999px; padding: 2px 24px 2px 10px;
+    color: var(--text-sub); cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B7280'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+    transition: all .15s;
+  }
+  .ep-select:hover { border-color: var(--accent); color: var(--text); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .btn-furigana {
+    font-size: 12px; padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: white; cursor: pointer; color: var(--text-sub);
+    font-family: inherit; transition: all .15s;
+  }
+  .btn-furigana.on {
+    background: #FEF3C7; border-color: #F59E0B; color: #92400E;
+  }
+  .tabs {
+    display: flex; gap: 4px;
+    background: #F3F4F6; padding: 3px; border-radius: 8px;
+  }
+  .tab {
+    border: none; background: transparent;
+    padding: 5px 14px; border-radius: 6px;
+    font-size: 13px; cursor: pointer; color: var(--text-sub);
+    font-family: inherit; transition: all .15s;
+  }
+  .tab.active {
+    background: white; color: var(--text);
+    font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  }
+
+  /* ── Layout ─────────────────────────────────── */
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 140px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Dialogue ────────────────────────────────── */
+  .script-lines {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 8px 16px;
+  }
+  .script-line {
+    display: flex; align-items: center; gap: 0;
+    padding: 3px 0; border-bottom: 1px solid #F9FAFB;
+  }
+  .play-btn {
+    flex-shrink: 0; width: 22px; height: 22px;
+    border: none; background: transparent; cursor: pointer;
+    color: #D1D5DB; font-size: 10px; padding: 0;
+    border-radius: 4px; transition: all .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .play-btn:hover { background: #FEF3C7; color: var(--accent); }
+  .play-btn.speaking { color: var(--accent); }
+  .script-line:last-child { border-bottom: none; }
+  .script-line.is-thought .jp-text { color: #6B7280; font-style: italic; }
+  .char-name {
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0;
+    min-width: 6em; text-align: right;
+    padding-top: 6px;
+  }
+  .char-sep {
+    color: #D1D5DB; margin: 0 8px 0 4px; flex-shrink: 0;
+    font-size: 14px; padding-top: 6px;
+  }
+  .line-body { flex: 1; }
+  .jp-text { font-size: 17px; line-height: 2.6; }
+  .line-en {
+    font-size: 12px; color: #9CA3AF; line-height: 1.6;
+    padding-bottom: 6px; display: none;
+  }
+  body.show-en .line-en { display: block; }
+  ruby { ruby-align: center; }
+  rt { font-size: 10px; color: #9CA3AF; transition: opacity .2s; }
+  body.hide-furigana rt { opacity: 0; }
+  .w {
+    cursor: pointer; border-radius: 3px; padding: 0 2px;
+    background: rgba(245, 158, 11, 0.13);
+    transition: background .1s;
+  }
+  .w:hover { background: #FEF3C7; }
+  .w.hi { background: #FDE68A; }
+
+  /* ── Vocabulary ──────────────────────────────── */
+  .vocab-bar {
+    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;
+  }
+  .vocab-search {
+    flex: 1; min-width: 180px;
+    padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 14px;
+    font-family: inherit; outline: none;
+  }
+  .vocab-search:focus { border-color: var(--accent); }
+  .pos-filters { display: flex; gap: 4px; flex-wrap: wrap; }
+  .pf-btn {
+    font-size: 11px; padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: white; cursor: pointer; font-family: inherit;
+    transition: all .15s;
+  }
+  .pf-btn.on { background: #111827; color: white; border-color: #111827; }
+  .vocab-meta-line {
+    font-size: 12px; color: var(--text-sub); margin-bottom: 10px;
+  }
+  .vocab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .vc {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px;
+    cursor: pointer; transition: all .15s;
+  }
+  .vc:hover { border-color: var(--accent); box-shadow: 0 2px 10px rgba(245,158,11,.15); }
+  .vc-word { font-size: 22px; font-weight: 600; }
+  .vc-reading { font-size: 12px; color: var(--text-sub); margin-top: 1px; }
+  .vc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .pos-pip {
+    font-size: 10px; padding: 1px 6px;
+    border-radius: 999px; background: #F3F4F6; color: var(--text-sub);
+  }
+  .freq { font-size: 12px; color: #D97706; font-weight: 600; }
+
+  /* ── Word panel ──────────────────────────────── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.3); z-index: 99;
+  }
+  .overlay.show { display: block; }
+  #panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: white; border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    padding: 16px 20px 36px;
+    transform: translateY(100%);
+    transition: transform .25s ease;
+    z-index: 100; max-height: 70vh; overflow-y: auto;
+    box-shadow: 0 -6px 30px rgba(0,0,0,.12);
+  }
+  #panel.open { transform: translateY(0); }
+  .panel-grip {
+    width: 36px; height: 4px; background: #E5E7EB;
+    border-radius: 999px; margin: 0 auto 14px;
+  }
+  .panel-close {
+    position: absolute; top: 14px; right: 16px;
+    border: none; background: #F3F4F6;
+    width: 26px; height: 26px; border-radius: 999px;
+    font-size: 14px; cursor: pointer; color: var(--text-sub);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .panel-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .p-word { font-size: 30px; font-weight: 700; }
+  .p-read { font-size: 16px; color: var(--text-sub); }
+  .p-pos {
+    margin-left: auto; font-size: 11px;
+    background: #F3F4F6; padding: 2px 8px;
+    border-radius: 999px; color: var(--text-sub);
+  }
+  .p-freq { font-size: 13px; color: #D97706; margin-bottom: 10px; }
+  .p-en { font-size: 14px; color: #374151; margin-bottom: 14px; font-style: italic; }
+  .p-section {
+    font-size: 11px; font-weight: 600; color: var(--text-sub);
+    text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px;
+  }
+  .ex-item {
+    border-left: 3px solid #FDE68A; padding: 6px 10px;
+    margin-bottom: 8px; background: #FFFBEB;
+    border-radius: 0 4px 4px 0;
+  }
+  .ex-jp { font-size: 15px; line-height: 2; }
+  .ex-en { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+  /* pitch accent */
+  .p-pitch {
+    display: inline-block; margin-left: 8px;
+    font-size: 13px; color: #6B7280; font-weight: 400;
+  }
+
+  /* ── Quiz ───────────────────────────────────── */
+  .q-wrap {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    max-width: 600px; margin: 0 auto;
+  }
+  .q-progress {
+    font-size: 12px; color: var(--text-sub);
+    text-align: right; margin-bottom: 14px;
+  }
+  .q-char { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .q-en {
+    font-size: 13px; color: var(--text-sub); line-height: 1.6;
+    background: #F9FAFB; border-radius: var(--radius);
+    padding: 8px 12px; margin-bottom: 16px;
+  }
+  .q-jp { font-size: 18px; line-height: 2.8; margin-bottom: 12px; }
+  .q-blank {
+    display: inline-block; min-width: 4em; text-align: center;
+    border-bottom: 2px solid #9CA3AF;
+    vertical-align: bottom; padding: 0 4px;
+  }
+  .q-blank.ok { border-color: #10B981; color: #10B981; }
+  .q-blank.ng { border-color: #EF4444; color: #EF4444; }
+  .q-blank ruby { display: inline; }
+  .q-result {
+    font-size: 13px; font-weight: 600; min-height: 20px;
+    margin-bottom: 14px;
+  }
+  .q-result.ok { color: #10B981; }
+  .q-result.ng { color: #EF4444; }
+  .q-input {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 16px; font-family: inherit;
+    outline: none; margin-bottom: 12px;
+    background: white; color: var(--text);
+  }
+  .q-input:focus { border-color: var(--accent); }
+  .q-input:disabled { background: #F9FAFB; color: var(--text-sub); }
+  .q-btns { display: flex; gap: 8px; }
+  .q-btn {
+    flex: 1; padding: 9px; border-radius: 999px;
+    font-size: 13px; font-family: inherit; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .q-btn-show {
+    background: white; border: 1px solid var(--border); color: var(--text-sub);
+  }
+  .q-btn-show:hover { border-color: #9CA3AF; color: var(--text); }
+  .q-btn-primary {
+    background: #111827; border: 1px solid #111827; color: white;
+  }
+  .q-btn-primary:hover { background: #374151; }
+  .q-done {
+    text-align: center; padding: 48px 20px; color: var(--text-sub);
+  }
+  .q-done-count { font-size: 13px; margin-bottom: 20px; }
+  .q-restart {
+    padding: 9px 28px; border-radius: 999px;
+    background: #111827; color: white; border: none;
+    font-size: 14px; font-family: inherit; font-weight: 600;
+    cursor: pointer;
+  }
+
+  .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
+  .err { text-align: center; padding: 40px 20px; color: #EF4444; font-size: 14px; line-height: 1.8; }
+  code { background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">SPY×FAMILY 日本語</span>
+  <select class="ep-select" id="ep-select"></select>
+  <div class="header-right">
+    <button class="btn-furigana on" id="fg-btn">ふりがな ON</button>
+    <button class="btn-furigana" id="en-btn">翻譯</button>
+    <div class="tabs">
+      <button class="tab active" data-tab="dialogue">台詞</button>
+      <button class="tab" data-tab="vocab">語彙</button>
+      <button class="tab" data-tab="quiz">練習</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="view active" id="dialogue-view">
+    <div class="loading">読み込み中…</div>
+  </div>
+  <div class="view" id="vocab-view">
+    <div class="vocab-bar">
+      <input type="search" class="vocab-search" id="vocab-search" placeholder="単語を検索…">
+      <div class="pos-filters" id="pos-filters">
+        <button class="pf-btn" data-pos="名詞">noun</button>
+        <button class="pf-btn" data-pos="動詞">verb</button>
+        <button class="pf-btn" data-pos="形容詞">adj</button>
+        <button class="pf-btn" data-pos="副詞">adv</button>
+      </div>
+    </div>
+    <div id="vg-wrap"></div>
+  </div>
+  <div class="view" id="quiz-view"></div>
+</main>
+
+<footer style="text-align:center;padding:16px 20px;font-size:11px;color:#9CA3AF;border-top:1px solid #F3F4F6;margin-top:8px">
+  Scripts transcribed &amp; organized by
+  <a href="https://transcribedanimescripts.tumblr.com" target="_blank" rel="noopener"
+     style="color:#9CA3AF;text-decoration:underline dotted">Kiriban</a>
+  · Japanese from Netflix subtitles (kitsunekko.net) · English from Gogoanime subtitles
+</footer>
+
+<div class="overlay" id="overlay"></div>
+<div id="panel">
+  <div class="panel-grip"></div>
+  <button class="panel-close" id="panel-close">✕</button>
+  <div class="panel-top">
+    <span class="p-word" id="p-word"></span>
+    <button class="play-btn" id="p-play" title="読み上げ" style="font-size:13px;width:26px;height:26px">▶</button>
+    <span class="p-read" id="p-read"></span>
+    <span class="p-pos"  id="p-pos"></span>
+  </div>
+  <div class="p-freq" id="p-freq"></div>
+  <div class="p-en" id="p-en"></div>
+  <div class="p-section">例文</div>
+  <div id="p-examples"></div>
+</div>
+
+<script>
+// ── constants ─────────────────────────────────────────────
+
+const CHAR_COLOR = {
+  '黄昏':'#3B82F6','ロイド':'#3B82F6','Twilight':'#3B82F6','Loid':'#3B82F6',
+  'アーニャ':'#EC4899','Anya':'#EC4899',
+  'ヨル':'#EF4444','Yor':'#EF4444',
+  'フランキー':'#10B981','Franky':'#10B981',
+  'ナレーター':'#9CA3AF','Narrator':'#9CA3AF',
+};
+const POS_EN = { '名詞':'noun','動詞':'verb','形容詞':'adj','副詞':'adv' };
+const PALETTE = ['#8B5CF6','#F59E0B','#06B6D4','#84CC16','#F97316','#14B8A6','#A855F7'];
+
+let epData    = null;
+let vocabBases = null;  // Set of word bases in vocabulary (for clickability)
+let fgOn = true;
+
+// ── Quiz state ────────────────────────────────────────────
+let quizQuestions   = [];
+let quizIndex       = 0;
+let quizAnswered    = false;
+let quizInitialized = false;
+
+// ── Speech ────────────────────────────────────────────────
+let speakingBtn = null;
+function speak(text, btn) {
+  speechSynthesis.cancel();
+  if (speakingBtn) { speakingBtn.classList.remove('speaking'); speakingBtn = null; }
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ja-JP';
+  utt.rate = 0.9;
+  if (btn) {
+    btn.classList.add('speaking');
+    speakingBtn = btn;
+    utt.onend = () => { btn.classList.remove('speaking'); speakingBtn = null; };
+  }
+  speechSynthesis.speak(utt);
+}
+
+// ── utils ─────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function charColor(name) {
+  if (!name) return '#9CA3AF';
+  for (const [k,v] of Object.entries(CHAR_COLOR)) { if (name.includes(k)) return v; }
+  let h = 0; for (const c of name) h = ((h<<5)-h)+c.charCodeAt(0);
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
+function isThought(jp){ return /^[（(](考え|過去)[）)]/.test(jp); }
+
+// ── token HTML ────────────────────────────────────────────
+// 語彙表に載っている単語（漢字・仮名問わず）はすべてクリック可能
+function tokensHtml(tokens) {
+  return (tokens||[]).map(t => {
+    const s      = esc(t.surface);
+    const r      = esc(t.furigana||'');
+    const hasF   = t.furigana != null;
+    const inVocab = vocabBases && vocabBases.has(t.base);
+
+    if (hasF && inVocab) {
+      // 漢字語 + 語彙あり → .w を ruby に直接付与（CSS・イベント共に確実）
+      return `<ruby class="w" data-b="${esc(t.base)}">${s}<rt>${r}</rt></ruby>`;
+    }
+    if (hasF) {
+      // 漢字語 + 語彙なし → ふりがなのみ
+      return `<ruby>${s}<rt>${r}</rt></ruby>`;
+    }
+    if (inVocab) {
+      // 仮名語 + 語彙あり → クリック可能（ふりがななし）
+      return `<span class="w" data-b="${esc(t.base)}">${s}</span>`;
+    }
+    return s;
+  }).join('');
+}
+
+// ── strip thought/past marker from token list ─────────────
+function displayTokens(line) {
+  const tokens = line.tokens || [];
+  const m = line.jp.match(/^[（(](考え|過去)[）)]\s*/);
+  if (!m) return tokens;
+  let pos = 0, i = 0;
+  while (i < tokens.length && pos < m[0].length) {
+    pos += tokens[i].surface.length; i++;
+  }
+  return tokens.slice(i);
+}
+
+// ── dialogue ──────────────────────────────────────────────
+function buildDialogue(lines) {
+  const buf = [];
+  for (const ln of lines) {
+    const thought = isThought(ln.jp);
+    const color   = charColor(ln.character);
+    const charHtml = ln.character
+      ? `<span class="char-name" style="color:${color}">${esc(ln.character)}</span><span class="char-sep">：</span>`
+      : '<span class="char-name"></span><span class="char-sep"> </span>';
+
+    const enHtml = ln.en ? `<div class="line-en">${esc(ln.en)}</div>` : '';
+    buf.push(`<div class="script-line${thought ? ' is-thought' : ''}">
+  <button class="play-btn" data-jp="${esc(ln.jp)}" title="読み上げ">▶</button>${charHtml}<div class="line-body"><div class="jp-text">${tokensHtml(displayTokens(ln))}</div>${enHtml}</div>
+</div>`);
+  }
+  const div = document.createElement('div');
+  div.className = 'script-lines';
+  div.innerHTML = buf.join('');
+  return div;
+}
+
+// ── vocabulary ────────────────────────────────────────────
+let vocabSearch = '', vocabPos = null;
+
+function buildVocab(vocab) {
+  const fil = vocab.filter(v =>
+    (!vocabPos || v.pos === vocabPos) &&
+    (!vocabSearch || v.word.includes(vocabSearch) || v.reading.includes(vocabSearch))
+  );
+  const grid = fil.map(v => {
+    const pitchStr = v.pitch !== null ? ` [${v.pitch}]` : '';
+    return `
+    <div class="vc" data-base="${esc(v.word)}">
+      <div class="vc-word">${esc(v.word)}</div>
+      <div class="vc-reading">${esc(v.reading)}${esc(pitchStr)}</div>
+      <div class="vc-foot">
+        <span class="pos-pip">${esc(POS_EN[v.pos]||v.pos)}</span>
+        <span class="freq">×${v.count}</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="vocab-meta-line">${fil.length} 語</div>
+          <div class="vocab-grid">${grid}</div>`;
+}
+
+// ── word panel ────────────────────────────────────────────
+function openPanel(base) {
+  const v = epData.vocabulary.find(x => x.word === base);
+  if (!v) return;
+
+  document.getElementById('p-word').textContent = v.word;
+  document.getElementById('p-play').dataset.jp = v.word;
+
+  // 読み方 ＋ 音調（数字表示法）
+  const pitchHtml = v.pitch !== null
+    ? `<span class="p-pitch">[${v.pitch}]</span>` : '';
+  document.getElementById('p-read').innerHTML = esc(v.reading) + pitchHtml;
+
+  document.getElementById('p-pos').textContent  = POS_EN[v.pos] || v.pos;
+  document.getElementById('p-freq').textContent = `このエピソードで ${v.count} 回登場`;
+
+  const enEl = document.getElementById('p-en');
+  enEl.textContent = (v.en && v.en.length) ? v.en.join(' · ') : '';
+
+  const box = document.getElementById('p-examples');
+  box.innerHTML = v.lineIds.slice(0,5).map(id => {
+    const ln = epData.lines[id];
+    return ln ? `<div class="ex-item">
+      <div class="ex-jp">${tokensHtml(displayTokens(ln))}</div>
+    </div>` : '';
+  }).join('');
+  // highlight
+  document.querySelectorAll('.w').forEach(el =>
+    el.classList.toggle('hi', el.dataset.b === base));
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.querySelectorAll('.w.hi').forEach(el => el.classList.remove('hi'));
+}
+
+// ── Quiz ──────────────────────────────────────────────────
+function buildQuizQuestions(lines, vb) {
+  const qs = [];
+  for (const ln of lines) {
+    if (!ln.en) continue;
+    const tokens = displayTokens(ln);
+    // gather indices of vocab tokens
+    const vidxs = tokens.map((t, i) => vb.has(t.base) ? i : -1).filter(i => i >= 0);
+    if (!vidxs.length) continue;
+    const bi = vidxs[Math.floor(Math.random() * vidxs.length)];
+    const bt = tokens[bi];
+    qs.push({
+      line: ln, tokens, blankIdx: bi,
+      blankSurface: bt.surface,
+      blankBase:    bt.base,
+      blankReading: bt.furigana || bt.reading || bt.base,
+    });
+  }
+  return qs;
+}
+
+function quizTokensHtml(tokens, bi, state, userInput) {
+  // state: null | 'ok' | 'ng'
+  return tokens.map((t, i) => {
+    const s = esc(t.surface), r = t.furigana ? esc(t.furigana) : '';
+
+    if (i === bi) {
+      if (!state) {
+        return `<span class="q-blank" style="color:transparent">${s.replace(/./gu, '　')}</span>`;
+      }
+      if (state === 'ok') {
+        const inner = r ? `<ruby>${s}<rt>${r}</rt></ruby>` : s;
+        return `<span class="q-blank ok">${inner}</span>`;
+      }
+      // ng：ユーザー入力をそのまま赤で表示
+      return `<span class="q-blank ng">${esc(userInput || '？')}</span>`;
+    }
+    return r ? `<ruby>${s}<rt>${r}</rt></ruby>` : s;
+  }).join('');
+}
+
+function normAnswer(s) {
+  return s.trim().replace(/\s+/g, '');
+}
+
+function checkAnswer(input, q) {
+  const inp = normAnswer(input);
+  if (!inp) return false;
+  return inp === normAnswer(q.blankSurface)
+      || inp === normAnswer(q.blankReading)
+      || inp === normAnswer(q.blankBase);
+}
+
+function showQuestion(idx) {
+  const q   = quizQuestions[idx];
+  const qv  = document.getElementById('quiz-view');
+  const col = charColor(q.line.character);
+
+  qv.innerHTML = `
+    <div class="q-wrap">
+      <div class="q-progress">${idx + 1} / ${quizQuestions.length}</div>
+      ${q.line.character
+        ? `<div class="q-char" style="color:${col}">${esc(q.line.character)}</div>` : ''}
+      <div class="q-en">${esc(q.line.en)}</div>
+      <div class="q-jp" id="q-jp">${quizTokensHtml(q.tokens, q.blankIdx, null)}</div>
+      <div class="q-result" id="q-result"></div>
+      <input class="q-input" id="q-input" type="text"
+             placeholder="日本語で入力…" autocomplete="off" />
+      <div class="q-btns" id="q-btns">
+        <button class="q-btn q-btn-show" id="btn-show">答えを見る</button>
+        <button class="q-btn q-btn-primary" id="btn-submit">送信 ↵</button>
+      </div>
+    </div>`;
+
+  const input = document.getElementById('q-input');
+  input.focus();
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
+  document.getElementById('btn-submit').addEventListener('click', doSubmit);
+  document.getElementById('btn-show').addEventListener('click', doReveal);
+
+  function doSubmit() {
+    if (quizAnswered) return;
+    const val = document.getElementById('q-input').value;
+    showResult(q, idx, checkAnswer(val, q), val);
+  }
+  function doReveal() {
+    if (quizAnswered) return;
+    showResult(q, idx, false, '');
+  }
+}
+
+function showResult(q, idx, correct, userInput) {
+  quizAnswered = true;
+
+  document.getElementById('q-jp').innerHTML =
+    quizTokensHtml(q.tokens, q.blankIdx, correct ? 'ok' : 'ng', userInput);
+
+  const resultEl = document.getElementById('q-result');
+  resultEl.textContent = correct ? '✓ 正解！' : `正解：${q.blankSurface}（${q.blankReading}）`;
+  resultEl.className = 'q-result ' + (correct ? 'ok' : 'ng');
+
+  const inp = document.getElementById('q-input');
+  inp.value = correct ? q.blankSurface : userInput;
+  inp.disabled = true;
+  if (!correct) inp.style.color = '#EF4444';
+
+  document.getElementById('q-btns').innerHTML =
+    `<button class="q-btn q-btn-primary" id="btn-next">次の問題 →</button>`;
+  document.getElementById('btn-next').addEventListener('click', () => {
+    quizAnswered = false;
+    quizIndex = idx + 1;
+    if (quizIndex < quizQuestions.length) {
+      showQuestion(quizIndex);
+    } else {
+      showQuizDone();
+    }
+  });
+}
+
+function showQuizDone() {
+  document.getElementById('quiz-view').innerHTML = `
+    <div class="q-done">
+      <div style="font-size:32px;margin-bottom:8px">🎉</div>
+      <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px">全問終了！</div>
+      <div class="q-done-count">${quizQuestions.length} 問 完了</div>
+      <button class="q-restart" id="q-restart">もう一度</button>
+    </div>`;
+  document.getElementById('q-restart').addEventListener('click', () => {
+    quizQuestions = buildQuizQuestions(epData.lines, vocabBases);
+    quizIndex = 0; quizAnswered = false;
+    showQuestion(0);
+  });
+}
+
+// ── loadEpisode ───────────────────────────────────────────
+async function loadEpisode(file) {
+  // Reset quiz state
+  quizInitialized = false; quizQuestions = []; quizIndex = 0; quizAnswered = false;
+  // Reset vocab filter
+  vocabSearch = ''; vocabPos = null;
+  document.getElementById('vocab-search').value = '';
+  document.querySelectorAll('.pf-btn').forEach(b => b.classList.remove('on'));
+
+  let data;
+  try {
+    data = await fetch(file).then(r => { if(!r.ok) throw r; return r.json(); });
+  } catch(e) {
+    document.getElementById('dialogue-view').innerHTML =
+      `<div class="err">⚠️ データの読み込みに失敗しました。<br>
+       ローカルで開く場合は HTTP サーバー経由でアクセスしてください。<br><br>
+       <code>npx serve .</code> を実行してから<br>
+       <code>http://localhost:3000</code> を開いてください。</div>`;
+    return;
+  }
+
+  epData     = data;
+  vocabBases = new Set(data.vocabulary.map(v => v.word));
+  quizQuestions = buildQuizQuestions(data.lines, vocabBases);
+  document.title = `SPY×FAMILY 日本語 | ${data.episode}`;
+
+  // ── dialogue
+  const dv = document.getElementById('dialogue-view');
+  dv.innerHTML = '';
+  dv.appendChild(buildDialogue(data.lines));
+
+  // ── vocab grid
+  document.getElementById('vg-wrap').innerHTML = buildVocab(data.vocabulary);
+
+  // ── quiz view reset
+  document.getElementById('quiz-view').innerHTML = '';
+
+  // Switch to dialogue tab
+  document.querySelector('[data-tab="dialogue"]').click();
+
+  // Close any open panel
+  closePanel();
+}
+
+// ── init (runs once) ──────────────────────────────────────
+async function init() {
+  // ── Load episodes list
+  let episodes = [{ id:'S1E01', label:'S1 · E01', file:'data/ep01.json' }];
+  try {
+    episodes = await fetch('./data/episodes.json').then(r => r.json());
+  } catch(e) { /* fallback to default */ }
+
+  // ── Populate dropdown
+  const sel = document.getElementById('ep-select');
+  episodes.forEach(ep => {
+    const opt = document.createElement('option');
+    opt.value = ep.file;
+    opt.textContent = ep.label;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => loadEpisode(sel.value));
+
+  // ── Tabs (once)
+  document.querySelectorAll('.tab').forEach(tab =>
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab + '-view').classList.add('active');
+      if (tab.dataset.tab === 'quiz' && !quizInitialized) {
+        quizInitialized = true;
+        showQuestion(0);
+      }
+    })
+  );
+
+  // ── Vocab search/filter (once)
+  document.getElementById('vocab-search').addEventListener('input', function() {
+    vocabSearch = this.value;
+    document.getElementById('vg-wrap').innerHTML = buildVocab(epData.vocabulary);
+  });
+  document.getElementById('pos-filters').addEventListener('click', e => {
+    const b = e.target.closest('.pf-btn');
+    if (!b) return;
+    vocabPos = vocabPos === b.dataset.pos ? null : b.dataset.pos;
+    document.querySelectorAll('.pf-btn').forEach(x => x.classList.toggle('on', x.dataset.pos === vocabPos));
+    document.getElementById('vg-wrap').innerHTML = buildVocab(epData.vocabulary);
+  });
+
+  // ── Furigana toggle (once)
+  document.getElementById('fg-btn').addEventListener('click', function() {
+    fgOn = !fgOn;
+    document.body.classList.toggle('hide-furigana', !fgOn);
+    this.textContent = fgOn ? 'ふりがな ON' : 'ふりがな OFF';
+    this.classList.toggle('on', fgOn);
+  });
+
+  // ── EN toggle (once)
+  let enOn = false;
+  document.getElementById('en-btn').addEventListener('click', function() {
+    enOn = !enOn;
+    document.body.classList.toggle('show-en', enOn);
+    this.textContent = enOn ? '翻譯 ON' : '翻譯';
+    this.classList.toggle('on', enOn);
+  });
+
+  // ── Word clicks (once)
+  document.addEventListener('click', e => {
+    const pb = e.target.closest('.play-btn');
+    if (pb) { speak(pb.dataset.jp, pb); return; }
+    const w = e.target.closest('.w');
+    if (w) { openPanel(w.dataset.b); return; }
+    const vc = e.target.closest('.vc');
+    if (vc) {
+      document.querySelector('[data-tab="dialogue"]').click();
+      openPanel(vc.dataset.base);
+    }
+  });
+
+  // ── Panel close (once)
+  document.getElementById('panel-close').addEventListener('click', closePanel);
+  document.getElementById('overlay').addEventListener('click', closePanel);
+
+  // ── Load first episode
+  await loadEpisode(episodes[0].file);
+}
+
+init();
+</script>
+</body>
+</html>

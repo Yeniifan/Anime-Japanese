@@ -1,0 +1,16 @@
+node_modules/
+
+# 生成物（build_dict.js で再生成）
+data/dict.json
+
+# JMdict / kanjium 資料源
+*.xml
+*.gz
+*.tsv
+
+# 開発用中間スクリプト
+scripts/seed_dict.js
+
+# OS
+.DS_Store
+Thumbs.db

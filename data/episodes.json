@@ -1,0 +1,18 @@
+[
+  {
+    "id": "S1E01",
+    "key": "ep01",
+    "label": "S1 · E01",
+    "titleJa": "オペレーション〈梟〉",
+    "titleEn": "Operation Strix",
+    "file": "data/ep01.json"
+  },
+  {
+    "id": "S1E02",
+    "key": "ep02",
+    "label": "S1 · E02",
+    "titleJa": "妻役を確保せよ",
+    "titleEn": "Secure a Wife",
+    "file": "data/ep02.json"
+  }
+]

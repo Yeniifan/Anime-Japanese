@@ -1,0 +1,14 @@
+{
+  "name": "anime-japanese",
+  "version": "1.0.0",
+  "description": "SPY×FAMILY アニメで学ぶ日本語インタラクティブリーダー",
+  "scripts": {
+    "build-dict": "node scripts/build_dict.js",
+    "add-episode": "node scripts/add_episode.js",
+    "serve": "npx serve ."
+  },
+  "dependencies": {
+    "jmdict-simplified-node": "^1.1.2",
+    "kuromoji": "^0.1.2"
+  }
+}
