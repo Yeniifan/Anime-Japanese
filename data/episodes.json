@@ -30,5 +30,13 @@
     "titleJa": "名門校面接試験",
     "titleEn": "The Prestigious School's Interview",
     "file": "data/ep04.json"
+  },
+  {
+    "id": "S1E05",
+    "key": "ep05",
+    "label": "S1 · E05",
+    "titleJa": "合否の行方 / Will They Pass?",
+    "titleEn": "",
+    "file": "data/ep05.json"
   }
 ]
