@@ -663,7 +663,7 @@ async function loadEpisode(file) {
 
   let data;
   try {
-    data = await fetch(file).then(r => { if(!r.ok) throw r; return r.json(); });
+    data = await fetch(`${file}?v=${Date.now()}`).then(r => { if(!r.ok) throw r; return r.json(); });
   } catch(e) {
     document.getElementById('dialogue-view').innerHTML =
       `<div class="err">⚠️ データの読み込みに失敗しました。<br>
@@ -701,7 +701,7 @@ async function init() {
   // ── Load episodes list
   let episodes = [{ id:'S1E01', label:'S1 · E01', file:'data/ep01.json' }];
   try {
-    episodes = await fetch('./data/episodes.json').then(r => r.json());
+    episodes = await fetch(`./data/episodes.json?v=${Date.now()}`).then(r => r.json());
   } catch(e) { /* fallback to default */ }
 
   // ── Populate dropdown
