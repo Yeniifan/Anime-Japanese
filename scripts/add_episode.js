@@ -63,8 +63,19 @@ const titleStr = titleJa ? `${titleJa} / ${titleEn}` : titleEn;
 
 console.log(`📺 ${epId}: ${titleStr}`);
 
-// ── 4. 執行 process.js ────────────────────────────────────
-const rootDir    = path.join(__dirname, '..');
+// ── 4. 統一重命名字幕檔為 S{s}ep{ee}.txt ──────────────────
+const rootDir      = path.join(__dirname, '..');
+const subtitlesDir = path.join(rootDir, 'subtitles');
+const canonicalName = `S${season}E${episode.toString().padStart(2, '0')}.txt`;
+const canonicalPath = path.join(subtitlesDir, canonicalName);
+
+fs.mkdirSync(subtitlesDir, { recursive: true });
+if (path.resolve(inputPath) !== path.resolve(canonicalPath)) {
+  fs.copyFileSync(inputPath, canonicalPath);
+  console.log(`📄 Saved subtitle → subtitles/${canonicalName}`);
+}
+
+// ── 6. 執行 process.js ────────────────────────────────────
 const outputPath = path.join(rootDir, 'data', `${epKey}.json`);
 const processJs  = path.join(__dirname, 'process.js');
 
@@ -79,7 +90,7 @@ try {
   process.exit(1);
 }
 
-// ── 5. 更新 data/episodes.json ────────────────────────────
+// ── 7. 更新 data/episodes.json ────────────────────────────
 const episodesPath = path.join(rootDir, 'data', 'episodes.json');
 let episodes = [];
 if (fs.existsSync(episodesPath)) {

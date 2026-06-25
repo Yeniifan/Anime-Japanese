@@ -14,5 +14,21 @@
     "titleJa": "妻役を確保せよ",
     "titleEn": "Secure a Wife",
     "file": "data/ep02.json"
+  },
+  {
+    "id": "S1E03",
+    "key": "ep03",
+    "label": "S1 · E03",
+    "titleJa": "受験対策をせよ",
+    "titleEn": "Prepare for the Interview",
+    "file": "data/ep03.json"
+  },
+  {
+    "id": "S1E04",
+    "key": "ep04",
+    "label": "S1 · E04",
+    "titleJa": "名門校面接試験",
+    "titleEn": "The Prestigious School's Interview",
+    "file": "data/ep04.json"
   }
 ]
