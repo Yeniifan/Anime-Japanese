@@ -436,17 +436,33 @@ function displayTokens(line) {
 
 // ── dialogue ──────────────────────────────────────────────
 function buildDialogue(lines) {
-  const buf = [];
+  // 同じキャラの連続行をグループ化（キャラ名がある場合のみ）
+  const groups = [];
   for (const ln of lines) {
-    const thought = isThought(ln.jp);
-    const color   = charColor(ln.character);
-    const charHtml = ln.character
-      ? `<span class="char-name" style="color:${color}">${esc(ln.character)}</span><span class="char-sep">：</span>`
+    const last = groups[groups.length - 1];
+    if (last && ln.character && last.character === ln.character) {
+      last.lines.push(ln);
+      last.jpAll += '　' + ln.jp;
+    } else {
+      groups.push({ character: ln.character, lines: [ln], jpAll: ln.jp });
+    }
+  }
+
+  const buf = [];
+  for (const grp of groups) {
+    const thought = isThought(grp.lines[0].jp);
+    const color   = charColor(grp.character);
+    const charHtml = grp.character
+      ? `<span class="char-name" style="color:${color}">${esc(grp.character)}</span><span class="char-sep">：</span>`
       : '<span class="char-name"></span><span class="char-sep"> </span>';
 
-    const enHtml = ln.en ? `<div class="line-en">${esc(ln.en)}</div>` : '';
+    const bodyHtml = grp.lines.map(ln => {
+      const enHtml = ln.en ? `<div class="line-en">${esc(ln.en)}</div>` : '';
+      return `<div class="jp-text">${tokensHtml(displayTokens(ln))}</div>${enHtml}`;
+    }).join('');
+
     buf.push(`<div class="script-line${thought ? ' is-thought' : ''}">
-  <button class="play-btn" data-jp="${esc(ln.jp)}" title="読み上げ">▶</button>${charHtml}<div class="line-body"><div class="jp-text">${tokensHtml(displayTokens(ln))}</div>${enHtml}</div>
+  <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}</div>
 </div>`);
   }
   const div = document.createElement('div');
