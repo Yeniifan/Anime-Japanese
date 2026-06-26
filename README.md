@@ -51,6 +51,6 @@ node scripts/build_dict.js
 
 ## Credits
 
-Japanese subtitles from [kitsunekko.net](https://kitsunekko.net) · English subtitles from Netflix.
+Subtitles from [kitsunekko.net](https://kitsunekko.net) ·
 
 SPY×FAMILY © 遠藤達哉 / 集英社 · WIT STUDIO × CloverWorks. This project is for personal educational use only.
