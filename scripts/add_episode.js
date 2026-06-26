@@ -1,18 +1,16 @@
 #!/usr/bin/env node
 /**
  * add_episode.js
- * 將一集的字幕加入資料庫。支援 txt（雙語）和 SRT（JP + EN）格式。
+ * 將一集的字幕加入資料庫。支援 Netflix CC SRT（JP + EN）格式。
  *
  * 用法：
- *   # 雙語 txt（transcribedanimescripts 格式）
- *   node scripts/add_episode.js subtitles/S1E02.txt
- *
- *   # 雙語 SRT（JP SRT + EN SRT）
- *   node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt
+ *   # Netflix CC（JP + EN SRT）← 推薦
+ *   node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "合否の行方 / Will They Pass?"
  *
  *   # 僅 JP SRT（無英語）
  *   node scripts/add_episode.js subtitles/S1E05.ja.srt
  *
+ * 字幕來源：kitsunekko.net（JP）、Netflix（EN）
  * 自動從檔名解析 S/E 編號。輸出：data/epXX.json，並更新 data/episodes.json。
  */
 

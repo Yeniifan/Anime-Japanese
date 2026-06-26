@@ -18,22 +18,27 @@ This is a personal project for reading SPY×FAMILY dialogue with furigana, vocab
 
 ## Data pipeline
 
-Source subtitle files (`.txt`) are processed locally and committed as `.json` — no build step needed to view the site.
+Subtitle files are processed locally and committed as `.json` — no build step needed to view the site.
 
 ```
-subtitles/ep01.txt
+subtitles/S1E05.ja.srt + S1E05.en.srt
        ↓  node scripts/add_episode.js
-data/ep01.json  +  data/episodes.json
+data/ep05.json  +  data/episodes.json
 ```
 
 ### Adding a new episode
 
-1. Download the bilingual script from [transcribedanimescripts.tumblr.com](https://transcribedanimescripts.tumblr.com)
-2. Run:
-   ```bash
-   node scripts/add_episode.js "SPY×FAMILY _ S.1 E.03 (JPN _ ENG).txt"
-   ```
-3. Commit `data/ep03.json` and `data/episodes.json`
+Download JP and EN subtitle files from [kitsunekko.net](https://kitsunekko.net) (Netflix CC recommended), then run:
+
+```bash
+node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "合否の行方 / Will They Pass?"
+```
+
+The script automatically:
+- Parses S/E number from the filename
+- Matches JP and EN lines by timestamp overlap
+- Saves the canonical subtitle files to `subtitles/`
+- Generates `data/ep05.json` and updates `data/episodes.json`
 
 ### Rebuilding the dictionary
 
@@ -46,6 +51,6 @@ node scripts/build_dict.js
 
 ## Credits
 
-Scripts transcribed and organized by **Kiriban** at [transcribedanimescripts.tumblr.com](https://transcribedanimescripts.tumblr.com) · Japanese from Netflix subtitles (kitsunekko.net) · English from Gogoanime subtitles.
+Japanese subtitles from [kitsunekko.net](https://kitsunekko.net) · English subtitles from Netflix.
 
 SPY×FAMILY © 遠藤達哉 / 集英社 · WIT STUDIO × CloverWorks. This project is for personal educational use only.
