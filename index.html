@@ -67,38 +67,25 @@
     font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.1);
   }
 
-  /* ── Sidebar ─────────────────────────────────── */
-  .sidebar {
-    position: fixed; left: 0; top: 0; bottom: 0;
-    width: 40px; z-index: 8;
-    background: white; border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    align-items: center; padding-top: 60px;
-    overflow-y: auto; overflow-x: hidden;
-    gap: 2px;
-  }
-  .ep-label {
-    writing-mode: vertical-rl;
-    font-size: 11px; color: var(--text-sub);
-    padding: 12px 6px; cursor: pointer;
-    border-radius: 4px; transition: all .15s;
-    white-space: nowrap; letter-spacing: 0.5px;
-    font-family: inherit; border: none; background: transparent;
-  }
-  .ep-label:hover { color: var(--text); background: var(--bg); }
-  .ep-label.active { color: var(--accent); font-weight: 700; }
-
   /* ── Layout ─────────────────────────────────── */
-  body { padding-left: 40px; }
   main { max-width: 760px; margin: 0 auto; padding: 20px 16px 140px; }
   .view { display: none; }
   .view.active { display: block; }
 
   /* ── Dialogue ────────────────────────────────── */
   .script-lines {
+    display: flex;
     background: white; border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 8px 16px;
+    border-radius: var(--radius); overflow: hidden;
   }
+  .ep-title-vert {
+    writing-mode: vertical-rl;
+    font-size: 30px; font-weight: 700; letter-spacing: 6px;
+    color: #E5E7EB; user-select: none; flex-shrink: 0;
+    padding: 20px 8px;
+    border-right: 1px solid var(--border);
+  }
+  .script-content { flex: 1; padding: 8px 16px; }
   .script-line {
     display: flex; align-items: flex-start; gap: 0;
     padding: 3px 0; border-bottom: 1px solid #F9FAFB;
@@ -313,7 +300,6 @@
 </head>
 <body>
 
-<nav class="sidebar" id="sidebar"></nav>
 <header>
   <span class="logo">SPY×FAMILY 日本語</span>
   <select class="ep-select" id="ep-select"></select>
@@ -459,7 +445,7 @@ function displayTokens(line) {
 }
 
 // ── dialogue ──────────────────────────────────────────────
-function buildDialogue(lines) {
+function buildDialogue(lines, titleJa) {
   // 同じキャラの連続行をグループ化（キャラ名がある場合のみ）
   const groups = [];
   for (const ln of lines) {
@@ -491,7 +477,16 @@ function buildDialogue(lines) {
   }
   const div = document.createElement('div');
   div.className = 'script-lines';
-  div.innerHTML = buf.join('');
+  if (titleJa) {
+    const t = document.createElement('div');
+    t.className = 'ep-title-vert';
+    t.textContent = titleJa;
+    div.appendChild(t);
+  }
+  const content = document.createElement('div');
+  content.className = 'script-content';
+  content.innerHTML = buf.join('');
+  div.appendChild(content);
   return div;
 }
 
@@ -694,10 +689,6 @@ function showQuizDone() {
 
 // ── loadEpisode ───────────────────────────────────────────
 async function loadEpisode(file) {
-  // Update sidebar active state
-  document.querySelectorAll('.ep-label').forEach(b =>
-    b.classList.toggle('active', b.dataset.file === file)
-  );
   // Reset quiz state
   quizInitialized = false; quizQuestions = []; quizIndex = 0; quizAnswered = false;
   // Reset vocab filter
@@ -725,7 +716,7 @@ async function loadEpisode(file) {
   // ── dialogue
   const dv = document.getElementById('dialogue-view');
   dv.innerHTML = '';
-  dv.appendChild(buildDialogue(data.lines));
+  dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
 
   // ── vocab grid
   document.getElementById('vg-wrap').innerHTML = buildVocab(data.vocabulary);
@@ -757,20 +748,6 @@ async function init() {
     sel.appendChild(opt);
   });
   sel.addEventListener('change', () => loadEpisode(sel.value));
-
-  // ── Populate sidebar
-  const sidebar = document.getElementById('sidebar');
-  episodes.forEach(ep => {
-    const btn = document.createElement('button');
-    btn.className = 'ep-label';
-    btn.dataset.file = ep.file;
-    btn.textContent = ep.titleJa || ep.label;
-    btn.addEventListener('click', () => {
-      sel.value = ep.file;
-      loadEpisode(ep.file);
-    });
-    sidebar.appendChild(btn);
-  });
 
   // ── Tabs (once)
   document.querySelectorAll('.tab').forEach(tab =>
