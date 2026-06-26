@@ -296,6 +296,63 @@
   .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
   .err { text-align: center; padding: 40px 20px; color: #EF4444; font-size: 14px; line-height: 1.8; }
   code { background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+  /* ── Mobile ─────────────────────────────────── */
+  @media (max-width: 600px) {
+    /* Header: two rows */
+    header {
+      padding: 8px 12px;
+      gap: 6px;
+    }
+    .logo { font-size: 13px; }
+    .ep-select {
+      order: 3;          /* second row, left */
+      flex: 1;
+      font-size: 12px;
+    }
+    .header-right {
+      order: 2;          /* first row, right */
+      margin-left: auto;
+      gap: 6px;
+    }
+    .logo { order: 1; } /* first row, left */
+
+    /* Make header wrap into two rows */
+    header { flex-wrap: wrap; }
+    .ep-select { width: 100%; }  /* takes full width → forces new row */
+
+    /* Shrink furigana/EN buttons */
+    .btn-furigana { font-size: 11px; padding: 3px 8px; }
+
+    /* Tabs: slightly smaller */
+    .tab { padding: 4px 10px; font-size: 12px; }
+
+    /* Dialogue: tighter */
+    .ep-title-vert {
+      font-size: 20px;
+      letter-spacing: 4px;
+      padding: 16px 6px;
+    }
+    .jp-text { font-size: 15px; line-height: 2.4; }
+    .char-name { min-width: 4em; font-size: 12px; }
+    .char-sep { margin: 0 5px 0 3px; font-size: 13px; }
+    .script-content { padding: 6px 10px; }
+    main { padding: 12px 10px 120px; }
+
+    /* Vocab grid: 2 columns on mobile */
+    .vocab-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .vc-word { font-size: 18px; }
+
+    /* Quiz */
+    .q-wrap { padding: 16px 14px; }
+  }
+
+  /* Play button: minimum 44×44 touch target for mobile accessibility */
+  @media (max-width: 600px) {
+    .play-btn {
+      min-width: 36px; min-height: 36px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -378,17 +435,46 @@ let quizInitialized = false;
 
 // ── Speech ────────────────────────────────────────────────
 let speakingBtn = null;
+let jaVoice = null;
+let chromeKeepAlive = null;
+
+function loadVoices() {
+  const voices = speechSynthesis.getVoices();
+  // Prefer on-device Japanese voice; fall back to any ja-JP
+  jaVoice = voices.find(v => v.lang === 'ja-JP' && v.localService)
+          || voices.find(v => v.lang === 'ja-JP')
+          || voices.find(v => v.lang.startsWith('ja'))
+          || null;
+}
+speechSynthesis.addEventListener('voiceschanged', loadVoices);
+loadVoices(); // already populated in Chrome at load time
+
+function clearSpeaking() {
+  if (speakingBtn) { speakingBtn.classList.remove('speaking'); speakingBtn = null; }
+  if (chromeKeepAlive) { clearInterval(chromeKeepAlive); chromeKeepAlive = null; }
+}
+
 function speak(text, btn) {
   speechSynthesis.cancel();
-  if (speakingBtn) { speakingBtn.classList.remove('speaking'); speakingBtn = null; }
+  clearSpeaking();
+
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = 'ja-JP';
   utt.rate = 0.9;
-  if (btn) {
-    btn.classList.add('speaking');
-    speakingBtn = btn;
-    utt.onend = () => { btn.classList.remove('speaking'); speakingBtn = null; };
-  }
+  if (jaVoice) utt.voice = jaVoice;
+
+  if (btn) { btn.classList.add('speaking'); speakingBtn = btn; }
+  utt.onend   = clearSpeaking;
+  utt.onerror = clearSpeaking;
+
+  // Chrome bug: speechSynthesis silently pauses after ~15s.
+  // Kick it every 10s to keep it alive.
+  chromeKeepAlive = setInterval(() => {
+    if (!speechSynthesis.speaking) { clearInterval(chromeKeepAlive); chromeKeepAlive = null; return; }
+    speechSynthesis.pause();
+    speechSynthesis.resume();
+  }, 10000);
+
   speechSynthesis.speak(utt);
 }
 
