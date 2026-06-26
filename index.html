@@ -76,7 +76,10 @@
   .script-lines {
     display: flex;
     background: white; border: 1px solid var(--border);
-    border-radius: var(--radius); overflow: hidden;
+    border-radius: var(--radius);
+    overflow-x: auto;   /* horizontal scroll instead of clipping */
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
   }
   .ep-title-vert {
     writing-mode: vertical-rl;
@@ -84,8 +87,13 @@
     color: #E5E7EB; user-select: none; flex-shrink: 0;
     padding: 20px 8px;
     border-right: 1px solid var(--border);
+    position: sticky; left: 0; /* title stays visible while scrolling */
+    background: white; z-index: 1;
   }
-  .script-content { flex: 1; padding: 8px 16px; }
+  .script-content {
+    flex: 1; padding: 8px 16px;
+    min-width: 480px; /* prevent collapsing below readable width */
+  }
   .script-line {
     display: flex; align-items: flex-start; gap: 0;
     padding: 3px 0; border-bottom: 1px solid #F9FAFB;
@@ -327,17 +335,7 @@
     /* Tabs: slightly smaller */
     .tab { padding: 4px 10px; font-size: 12px; }
 
-    /* Dialogue: tighter */
-    .ep-title-vert {
-      font-size: 20px;
-      letter-spacing: 4px;
-      padding: 16px 6px;
-    }
-    .jp-text { font-size: 15px; line-height: 2.4; }
-    .char-name { min-width: 4em; font-size: 12px; }
-    .char-sep { margin: 0 5px 0 3px; font-size: 13px; }
-    .script-content { padding: 6px 10px; }
-    main { padding: 12px 10px 120px; }
+    main { padding: 12px 8px 120px; }
 
     /* Vocab grid: 2 columns on mobile */
     .vocab-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
