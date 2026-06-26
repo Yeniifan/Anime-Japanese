@@ -4,11 +4,11 @@
  * 將一集的字幕加入資料庫。支援 Netflix CC SRT（JP + EN）格式。
  *
  * 用法：
- *   # Netflix CC（JP + EN SRT）← 推薦
- *   node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "合否の行方 / Will They Pass?"
+ *   # 直接輸入集數編號（自動搜尋 subtitles/ 資料夾）← 推薦
+ *   node scripts/add_episode.js S1E06
  *
- *   # 僅 JP SRT（無英語）
- *   node scripts/add_episode.js subtitles/S1E05.ja.srt
+ *   # 指定完整檔名
+ *   node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "合否の行方 / Will They Pass?"
  *
  * 字幕來源：kitsunekko.net（JP）、Netflix（EN）
  * 自動從檔名解析 S/E 編號。輸出：data/epXX.json，並更新 data/episodes.json。
@@ -19,7 +19,6 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // ── 1. 解析命令列 ──────────────────────────────────────────
-// ── フラグ解析 ─────────────────────────────────────────────
 const rawArgs = process.argv.slice(2);
 const flags = {};
 const positionals = [];
@@ -30,23 +29,62 @@ for (let i = 0; i < rawArgs.length; i++) {
     positionals.push(rawArgs[i]);
   }
 }
-
-const jpPath = positionals[0];
-const enPath = positionals[1] && positionals[1].toLowerCase().endsWith('.srt')
-  ? positionals[1] : null;
 const titleOverride = flags.title || null;
 
-if (!jpPath) {
-  console.error('Usage: node scripts/add_episode.js <jp.srt|input.txt> [en.srt] [--title "タイトル"]');
+if (!positionals[0]) {
+  console.error('Usage: node scripts/add_episode.js <S1E06|jp.srt> [en.srt] [--title "タイトル"]');
   process.exit(1);
 }
-if (!fs.existsSync(jpPath)) {
-  console.error(`File not found: ${jpPath}`);
-  process.exit(1);
+
+// ── 2. 集數 ID 入力 or ファイルパス入力を判定 ────────────
+const rootDir      = path.join(__dirname, '..');
+const subtitlesDir = path.join(rootDir, 'subtitles');
+
+function findSubtitleFiles(epInput) {
+  const m = epInput.match(/S\.?0*(\d+)[E×x\.]0*(\d+)/i);
+  if (!m) return null;
+  const season  = parseInt(m[1]);
+  const episode = parseInt(m[2]);
+  // S01E06 形式にも S1E6 形式にも対応する正規表現
+  const idRegex = new RegExp(`S0*${season}[E×x\\.]0*${episode}(?!\\d)`, 'i');
+
+  const files = fs.readdirSync(subtitlesDir);
+  const jpFile = files.find(f => idRegex.test(f) && /\.ja[\.\[]/.test(f));
+  const enFile = files.find(f => idRegex.test(f) && /\.en\./.test(f));
+  return { jpFile, enFile, season, episode };
 }
-if (enPath && !fs.existsSync(enPath)) {
-  console.error(`EN SRT not found: ${enPath}`);
-  process.exit(1);
+
+let jpPath, enPath;
+const isEpId = /^S\.?0*\d+[E×x\.]0*\d+$/i.test(positionals[0]);
+
+if (isEpId) {
+  const result = findSubtitleFiles(positionals[0]);
+  if (!result) {
+    console.error(`Cannot parse episode ID: ${positionals[0]}`);
+    process.exit(1);
+  }
+  if (!result.jpFile && !result.enFile) {
+    console.error(`❌ 資料不存在：subtitles/ に ${positionals[0]} の JP・EN 字幕が見つかりません`);
+    process.exit(1);
+  }
+  if (!result.jpFile) {
+    console.error(`❌ 資料不存在：${positionals[0]} の JP 字幕が見つかりません`);
+    process.exit(1);
+  }
+  if (!result.enFile) {
+    console.error(`❌ 資料不存在：${positionals[0]} の EN 字幕が見つかりません`);
+    process.exit(1);
+  }
+  jpPath = path.join(subtitlesDir, result.jpFile);
+  enPath = path.join(subtitlesDir, result.enFile);
+  console.log(`📁 JP: ${result.jpFile}`);
+  console.log(`📁 EN: ${result.enFile}`);
+} else {
+  jpPath = positionals[0];
+  enPath = positionals[1] && positionals[1].toLowerCase().endsWith('.srt')
+    ? positionals[1] : null;
+  if (!fs.existsSync(jpPath)) { console.error(`File not found: ${jpPath}`); process.exit(1); }
+  if (enPath && !fs.existsSync(enPath)) { console.error(`EN SRT not found: ${enPath}`); process.exit(1); }
 }
 
 const isSrt = jpPath.toLowerCase().endsWith('.srt');
@@ -65,6 +103,14 @@ const epKey   = `ep${episode.toString().padStart(2, '0')}`;
 const label   = `S${season} · E${episode.toString().padStart(2, '0')}`;
 
 // ── 3. 標題解析 ────────────────────────────────────────────
+// Lookup from data/episode-titles.json
+function lookupTitle(epId) {
+  const titlesPath = path.join(rootDir, 'data', 'episode-titles.json');
+  if (!fs.existsSync(titlesPath)) return null;
+  const db = JSON.parse(fs.readFileSync(titlesPath, 'utf8'));
+  return db[epId] || null; // { ja, en } or null
+}
+
 function parseTitleFromTxt(filePath) {
   const lines = fs.readFileSync(filePath, 'utf8').split('\n').slice(0, 20);
   for (const line of lines) {
@@ -93,11 +139,18 @@ let titleEn, titleJa;
 if (titleOverride) {
   // --title 指定あり → そのまま使う
   titleJa = titleOverride; titleEn = '';
-} else if (isSrt) {
-  ({ ja: titleJa, en: titleEn } = parseTitleFromSrtName(jpPath));
-  if (!titleJa) console.warn(`⚠  Cannot extract title from filename. Use --title "タイトル" to set it.`);
 } else {
-  ({ en: titleEn, ja: titleJa } = parseTitleFromTxt(jpPath));
+  // 1) Try lookup table first
+  const looked = lookupTitle(epId);
+  if (looked) {
+    titleJa = looked.ja; titleEn = looked.en;
+  } else if (isSrt) {
+    // 2) Try to extract from SRT filename
+    ({ ja: titleJa, en: titleEn } = parseTitleFromSrtName(jpPath));
+    if (!titleJa) console.warn(`⚠  Cannot extract title from filename. Use --title "タイトル" to set it.`);
+  } else {
+    ({ en: titleEn, ja: titleJa } = parseTitleFromTxt(jpPath));
+  }
 }
 const titleStr = titleJa && titleEn ? `${titleJa} / ${titleEn}`
                : titleJa || titleEn || epId;
@@ -105,8 +158,6 @@ const titleStr = titleJa && titleEn ? `${titleJa} / ${titleEn}`
 console.log(`📺 ${epId}: ${titleStr}`);
 
 // ── 4. 字幕ファイルを canonical 名で subtitles/ に保存 ────
-const rootDir      = path.join(__dirname, '..');
-const subtitlesDir = path.join(rootDir, 'subtitles');
 fs.mkdirSync(subtitlesDir, { recursive: true });
 
 function saveSubtitle(src, dest) {
