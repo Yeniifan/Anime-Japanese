@@ -205,6 +205,8 @@ function saveSubtitle(src, dest) {
   try {
     fs.writeFileSync(dest, fs.readFileSync(src));
     console.log(`📄 Saved → subtitles/${path.basename(dest)}`);
+    fs.unlinkSync(src);
+    console.log(`🗑  Removed ${path.basename(src)}`);
   } catch (e) {
     if (e.code === 'EACCES') {
       console.warn(`⚠  subtitles/${path.basename(dest)} already exists (skipped)`);
