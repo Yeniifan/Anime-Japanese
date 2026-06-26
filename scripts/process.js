@@ -110,7 +110,10 @@ function parseSrtBlocks(filePath) {
     blocks.push({
       startMs: srtTimeToMs(m[1]),
       endMs:   srtTimeToMs(m[2]),
-      lines:   lines.slice(lines.indexOf(timeLine) + 1).filter(Boolean),
+      // Strip bidi / invisible control chars Netflix adds (‎ LRM etc.)
+      lines:   lines.slice(lines.indexOf(timeLine) + 1)
+                    .map(l => l.replace(/[‎‏‪-‮⁦-⁩]/g, ''))
+                    .filter(Boolean),
     });
   }
   return blocks;

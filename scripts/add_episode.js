@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 /**
  * add_episode.js
- * 將一集的字幕加入資料庫。支援 Netflix CC SRT（JP + EN）格式。
+ * 將一集（或多集）的字幕加入資料庫。支援 Netflix CC SRT（JP + EN）格式。
  *
  * 用法：
- *   # 直接輸入集數編號（自動搜尋 subtitles/ 資料夾）← 推薦
- *   node scripts/add_episode.js S1E06
- *
- *   # 指定完整檔名
- *   node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "合否の行方 / Will They Pass?"
+ *   node scripts/add_episode.js S1E07          # 單集
+ *   node scripts/add_episode.js S1E12-24       # 範圍（E12 到 E24）
+ *   node scripts/add_episode.js S1E07 S1E08    # 多個 ID
+ *   node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "..."
  *
  * 字幕來源：kitsunekko.net（JP）、Netflix（EN）
- * 自動從檔名解析 S/E 編號。輸出：data/epXX.json，並更新 data/episodes.json。
+ * 自動從 data/episode-titles.json 查標題。輸出：data/epXX.json，並更新 data/episodes.json。
  */
 
 const fs   = require('fs');
@@ -32,8 +31,49 @@ for (let i = 0; i < rawArgs.length; i++) {
 const titleOverride = flags.title || null;
 
 if (!positionals[0]) {
-  console.error('Usage: node scripts/add_episode.js <S1E06|jp.srt> [en.srt] [--title "タイトル"]');
+  console.error('Usage: node scripts/add_episode.js <S1E07 | S1E12-24 | jp.srt> [--title "タイトル"]');
   process.exit(1);
+}
+
+// ── 1b. 範圍展開 S1E12-24 → ['S1E12','S1E13',...,'S1E24'] ──
+function expandEpIds(args) {
+  const ids = [];
+  for (const arg of args) {
+    const range = arg.match(/^(S\.?0*(\d+)[E×x\.]0*(\d+))-0*(\d+)$/i);
+    if (range) {
+      const season  = parseInt(range[2]);
+      const epStart = parseInt(range[3]);
+      const epEnd   = parseInt(range[4]);
+      for (let e = epStart; e <= epEnd; e++) {
+        ids.push(`S${season}E${e.toString().padStart(2, '0')}`);
+      }
+    } else {
+      ids.push(arg);
+    }
+  }
+  return ids;
+}
+
+// 複数 ID モード：ID が 2 個以上、または範囲表記のとき
+const expandedPositionals = expandEpIds(positionals);
+const isMulti = expandedPositionals.length > 1 &&
+  expandedPositionals.every(a => /^S\.?0*\d+[E×x\.]0*\d+$/i.test(a));
+
+if (isMulti) {
+  let ok = 0, fail = 0;
+  for (const epId of expandedPositionals) {
+    console.log(`\n${'─'.repeat(40)}\n▶ ${epId}`);
+    try {
+      execSync(`node "${__filename}" "${epId}"`, { stdio: 'inherit', cwd: path.join(__dirname, '..') });
+      ok++;
+    } catch {
+      console.error(`❌ ${epId} failed`);
+      fail++;
+    }
+  }
+  console.log(`\n${'─'.repeat(40)}`);
+  console.log(`✅ ${ok} succeeded  ❌ ${fail} failed`);
+  process.exit(fail > 0 ? 1 : 0);
 }
 
 // ── 2. 集數 ID 入力 or ファイルパス入力を判定 ────────────

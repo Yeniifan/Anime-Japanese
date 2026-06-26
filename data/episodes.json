@@ -54,5 +54,133 @@
     "titleJa": "対秘密警察偽装作戦",
     "titleEn": "The Counter-Secret Police Cover Operation",
     "file": "data/ep08.json"
+  },
+  {
+    "id": "S1E09",
+    "key": "ep09",
+    "label": "S1 · E09",
+    "titleJa": "ラブラブを見せつけよ",
+    "titleEn": "Show Off How in Love You Are",
+    "file": "data/ep09.json"
+  },
+  {
+    "id": "S1E10",
+    "key": "ep10",
+    "label": "S1 · E10",
+    "titleJa": "ドッジボール大作戦",
+    "titleEn": "The Great Dodgeball Plan",
+    "file": "data/ep10.json"
+  },
+  {
+    "id": "S1E11",
+    "key": "ep11",
+    "label": "S1 · E11",
+    "titleJa": "〈星（ステラ）〉",
+    "titleEn": "Stella",
+    "file": "data/ep11.json"
+  },
+  {
+    "id": "S1E12",
+    "key": "ep12",
+    "label": "S1 · E12",
+    "titleJa": "ペンギンパーク",
+    "titleEn": "Penguin Park",
+    "file": "data/ep12.json"
+  },
+  {
+    "id": "S1E13",
+    "key": "ep13",
+    "label": "S1 · E13",
+    "titleJa": "プロジェクト〈アップル〉",
+    "titleEn": "Project Apple",
+    "file": "data/ep13.json"
+  },
+  {
+    "id": "S1E14",
+    "key": "ep14",
+    "label": "S1 · E14",
+    "titleJa": "時限爆弾を解除せよ",
+    "titleEn": "Disarm the Time Bomb",
+    "file": "data/ep14.json"
+  },
+  {
+    "id": "S1E15",
+    "key": "ep15",
+    "label": "S1 · E15",
+    "titleJa": "新しい家族",
+    "titleEn": "A New Family Member",
+    "file": "data/ep15.json"
+  },
+  {
+    "id": "S1E16",
+    "key": "ep16",
+    "label": "S1 · E16",
+    "titleJa": "ヨル's キッチン",
+    "titleEn": "Yor's Kitchen",
+    "file": "data/ep16.json"
+  },
+  {
+    "id": "S1E17",
+    "key": "ep17",
+    "label": "S1 · E17",
+    "titleJa": "グリフォン作戦を敢行せよ",
+    "titleEn": "Carry Out the Griffin Plan",
+    "file": "data/ep17.json"
+  },
+  {
+    "id": "S1E18",
+    "key": "ep18",
+    "label": "S1 · E18",
+    "titleJa": "家庭教師の叔父",
+    "titleEn": "Uncle the Private Tutor",
+    "file": "data/ep18.json"
+  },
+  {
+    "id": "S1E19",
+    "key": "ep19",
+    "label": "S1 · E19",
+    "titleJa": "デズモンドへの復讐計画",
+    "titleEn": "A Revenge Plot Against Desmond",
+    "file": "data/ep19.json"
+  },
+  {
+    "id": "S1E20",
+    "key": "ep20",
+    "label": "S1 · E20",
+    "titleJa": "総合病院を調査せよ",
+    "titleEn": "Investigate the General Hospital",
+    "file": "data/ep20.json"
+  },
+  {
+    "id": "S1E21",
+    "key": "ep21",
+    "label": "S1 · E21",
+    "titleJa": "〈夜帷（とばり）〉",
+    "titleEn": "Nightfall",
+    "file": "data/ep21.json"
+  },
+  {
+    "id": "S1E22",
+    "key": "ep22",
+    "label": "S1 · E22",
+    "titleJa": "地下テニス大会：ザ・キャンベルドン",
+    "titleEn": "The Underground Tennis Tournament: The Campbelldon",
+    "file": "data/ep22.json"
+  },
+  {
+    "id": "S1E23",
+    "key": "ep23",
+    "label": "S1 · E23",
+    "titleJa": "揺るがぬ軌道",
+    "titleEn": "The Unwavering Path",
+    "file": "data/ep23.json"
+  },
+  {
+    "id": "S1E24",
+    "key": "ep24",
+    "label": "S1 · E24",
+    "titleJa": "母役と妻役",
+    "titleEn": "The Role of a Mother and Wife",
+    "file": "data/ep24.json"
   }
 ]
