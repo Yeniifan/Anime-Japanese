@@ -21,24 +21,34 @@ This is a personal project for reading SPY×FAMILY dialogue with furigana, vocab
 Subtitle files are processed locally and committed as `.json` — no build step needed to view the site.
 
 ```
-subtitles/S1E05.ja.srt + S1E05.en.srt
-       ↓  node scripts/add_episode.js
-data/ep05.json  +  data/episodes.json
+subtitles/S1E07.ja.srt + S1E07.en.srt   ← Netflix CC subtitles from kitsunekko.net
+       ↓  node scripts/add_episode.js S1E07
+data/ep07.json  +  data/episodes.json
 ```
 
 ### Adding a new episode
 
-Download JP and EN subtitle files from [kitsunekko.net](https://kitsunekko.net) (Netflix CC recommended), then run:
+1. Download the JP (`.ja[cc].srt`) and EN (`.en.srt`) Netflix subtitle files from [kitsunekko.net](https://kitsunekko.net) into `subtitles/`
+2. Run:
 
 ```bash
-node scripts/add_episode.js subtitles/S1E05.ja.srt subtitles/S1E05.en.srt --title "合否の行方 / Will They Pass?"
+node scripts/add_episode.js S1E07
 ```
 
-The script automatically:
-- Parses S/E number from the filename
+The script auto-finds the matching subtitle files by episode ID (handles filename variations like `S01E07`, `S1E7`, etc.) and looks up the episode title from `data/episode-titles.json` — no extra flags needed. If either subtitle file is missing, a clear error is shown.
+
+To override the title manually:
+
+```bash
+node scripts/add_episode.js S1E07 --title "カスタムタイトル"
+```
+
+The script:
+- Finds JP and EN subtitle files in `subtitles/` by episode ID
+- Looks up the episode title from `data/episode-titles.json` (S1E01–S1E25 pre-populated)
 - Matches JP and EN lines by timestamp overlap
-- Saves the canonical subtitle files to `subtitles/`
-- Generates `data/ep05.json` and updates `data/episodes.json`
+- Saves canonical subtitle files (`S1E07.ja.srt`, `S1E07.en.srt`) to `subtitles/`
+- Generates `data/ep07.json` and updates `data/episodes.json`
 
 ### Rebuilding the dictionary
 
@@ -51,6 +61,6 @@ node scripts/build_dict.js
 
 ## Credits
 
-Subtitles from [kitsunekko.net](https://kitsunekko.net) ·
+Japanese subtitles from [kitsunekko.net](https://kitsunekko.net) · English subtitles from Netflix
 
 SPY×FAMILY © 遠藤達哉 / 集英社 · WIT STUDIO × CloverWorks. This project is for personal educational use only.
