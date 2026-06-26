@@ -38,5 +38,21 @@
     "titleJa": "合否の行方 / Will They Pass?",
     "titleEn": "",
     "file": "data/ep05.json"
+  },
+  {
+    "id": "S1E07",
+    "key": "ep07",
+    "label": "S1 · E07",
+    "titleJa": "",
+    "titleEn": "",
+    "file": "data/ep07.json"
+  },
+  {
+    "id": "S1E08",
+    "key": "ep08",
+    "label": "S1 · E08",
+    "titleJa": "対秘密警察偽装作戦",
+    "titleEn": "The Counter-Secret Police Cover Operation",
+    "file": "data/ep08.json"
   }
 ]
