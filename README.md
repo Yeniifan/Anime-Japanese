@@ -32,12 +32,12 @@ data/ep07.json  +  data/episodes.json
 2. Run:
 
 ```bash
-node scripts/add_episode.js S1E07
+node scripts/add_episode.js S1E07        # single episode
+node scripts/add_episode.js S1E12-24     # range
+node scripts/add_episode.js S1E07 S1E09  # multiple IDs
 ```
 
-The script auto-finds the matching subtitle files by episode ID (handles filename variations like `S01E07`, `S1E7`, etc.) and looks up the episode title from `data/episode-titles.json` — no extra flags needed. If either subtitle file is missing, a clear error is shown.
-
-To override the title manually:
+The script auto-finds matching subtitle files by episode ID (handles filename variations like `S01E07`, `S1E7`, etc.) and looks up the episode title from `data/episode-titles.json` — no extra flags needed. For a range, episodes with missing subtitle files are skipped and the rest continue. To override the title manually:
 
 ```bash
 node scripts/add_episode.js S1E07 --title "カスタムタイトル"
