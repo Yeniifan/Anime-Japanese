@@ -1,6 +1,6 @@
 # 動漫日本語
 
-Learn Japanese through anime we love!
+Learn Japanese through anime we love! (Currently supports SPY×FAMILY only.)
 
 This is a personal project for reading SPY×FAMILY dialogue with furigana, vocabulary lookup, and fill-in-the-blank practice — all running as a static site with no backend.
 
