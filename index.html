@@ -333,21 +333,22 @@
       position: sticky; top: 68px; /* below sticky header */
     }
     .yt-side .yt-wrap { margin-bottom: 8px; }
-    /* Hide mobile toggle button on desktop */
-    main.has-video .btn-yt { display: none !important; }
+    /* Hide toggle button on desktop — video is always in the side panel */
+    .btn-yt { display: none !important; }
   }
 
   .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
   .err { text-align: center; padding: 40px 20px; color: #EF4444; font-size: 14px; line-height: 1.8; }
   code { background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 
-  /* ── Mobile ─────────────────────────────────── */
-  @media (max-width: 600px) {
-    /* Mobile: horizontal scroll for script */
+  /* ── Mobile scroll (< 768px matches JS desktop threshold) ── */
+  @media (max-width: 767px) {
+    /* Allow horizontal scroll on mobile if content overflows */
     .script-lines { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .script-content { flex-shrink: 0; }
-    .jp-text { white-space: nowrap; }
+  }
 
+  /* ── Mobile layout (≤ 600px) ─────────────────────────── */
+  @media (max-width: 600px) {
     /* Header: two rows */
     header {
       padding: 8px 12px;
