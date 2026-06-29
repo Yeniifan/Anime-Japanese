@@ -77,9 +77,7 @@
     display: flex;
     background: white; border: 1px solid var(--border);
     border-radius: var(--radius);
-    overflow-x: auto;   /* horizontal scroll instead of clipping */
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+    overflow: hidden; /* desktop: clip normally */
   }
   .ep-title-vert {
     writing-mode: vertical-rl;
@@ -91,7 +89,7 @@
     background: white; z-index: 1;
   }
   .script-content {
-    flex-shrink: 0; padding: 8px 16px;
+    flex: 1; min-width: 0; padding: 8px 16px;
   }
   .script-line {
     display: flex; align-items: flex-start; gap: 0;
@@ -120,7 +118,7 @@
     font-size: 14px; padding-top: 14px;
   }
   .line-body { flex: 1; min-width: 0; }
-  .jp-text { font-size: 17px; line-height: 2.6; white-space: nowrap; }
+  .jp-text { font-size: 17px; line-height: 2.6; }
   .line-en {
     font-size: 12px; color: #9CA3AF; line-height: 1.6;
     padding-bottom: 6px; display: none;
@@ -316,10 +314,28 @@
     border: 1px solid var(--border); border-radius: 999px;
     background: white; cursor: pointer; color: var(--text-sub);
     font-family: inherit; transition: all .15s;
-    display: none; /* shown only when episode has youtubeId */
+    display: none;
   }
   .btn-yt.visible { display: inline-flex; align-items: center; gap: 4px; }
   .btn-yt.on { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+
+  /* ── Desktop side-by-side layout ────────────── */
+  @media (min-width: 768px) {
+    main.has-video { max-width: 1140px; }
+    #dialogue-view.has-video {
+      display: flex; gap: 20px; align-items: flex-start;
+    }
+    #dialogue-view.has-video > .script-lines {
+      flex: 1; min-width: 0;
+    }
+    .yt-side {
+      width: 380px; flex-shrink: 0;
+      position: sticky; top: 68px; /* below sticky header */
+    }
+    .yt-side .yt-wrap { margin-bottom: 8px; }
+    /* Hide mobile toggle button on desktop */
+    main.has-video .btn-yt { display: none !important; }
+  }
 
   .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
   .err { text-align: center; padding: 40px 20px; color: #EF4444; font-size: 14px; line-height: 1.8; }
@@ -327,6 +343,11 @@
 
   /* ── Mobile ─────────────────────────────────── */
   @media (max-width: 600px) {
+    /* Mobile: horizontal scroll for script */
+    .script-lines { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .script-content { flex-shrink: 0; }
+    .jp-text { white-space: nowrap; }
+
     /* Header: two rows */
     header {
       padding: 8px 12px;
@@ -816,26 +837,41 @@ async function loadEpisode(file) {
   document.title = `SPY×FAMILY 日本語 | ${data.episode}`;
 
   // ── YouTube embed
-  const ytBtn  = document.getElementById('yt-btn');
+  const ytBtn   = document.getElementById('yt-btn');
+  const mainEl  = document.querySelector('main');
   const epEntry = (window._episodes || []).find(e => e.file === file);
   const ytId    = epEntry?.youtubeId || null;
-  ytBtn.classList.toggle('visible', !!ytId);
+  const isDesktop = window.innerWidth >= 768;
+
+  // Reset classes
+  mainEl.classList.toggle('has-video', !!(ytId && isDesktop));
   ytBtn.classList.remove('on');
-  // Remove any existing embed
-  const oldYt = document.getElementById('yt-container');
-  if (oldYt) oldYt.remove();
 
   // ── dialogue
   const dv = document.getElementById('dialogue-view');
   dv.innerHTML = '';
-  if (ytId) {
-    const ytContainer = document.createElement('div');
-    ytContainer.id = 'yt-container';
-    ytContainer.className = 'yt-wrap hidden';
-    ytContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe>`;
-    dv.appendChild(ytContainer);
+  dv.classList.toggle('has-video', !!(ytId && isDesktop));
+
+  if (ytId && isDesktop) {
+    // Desktop: script left, video right (sticky)
+    ytBtn.classList.remove('visible');
+    dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
+    const ytSide = document.createElement('div');
+    ytSide.className = 'yt-side';
+    ytSide.innerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe></div>`;
+    dv.appendChild(ytSide);
+  } else {
+    // Mobile: toggle button shows/hides video above script
+    ytBtn.classList.toggle('visible', !!ytId);
+    if (ytId) {
+      const ytContainer = document.createElement('div');
+      ytContainer.id = 'yt-container';
+      ytContainer.className = 'yt-wrap hidden';
+      ytContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe>`;
+      dv.appendChild(ytContainer);
+    }
+    dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
   }
-  dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
 
   // ── vocab grid
   document.getElementById('vg-wrap').innerHTML = buildVocab(data.vocabulary);
