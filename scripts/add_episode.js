@@ -214,19 +214,26 @@ function saveSubtitle(src, dest) {
   }
 }
 
+const canonicalJp = isSrt ? path.join(subtitlesDir, `${epId}.ja.srt`) : path.join(subtitlesDir, `${epId}.txt`);
+const canonicalEn = enPath ? path.join(subtitlesDir, `${epId}.en.srt`) : null;
+
 if (isSrt) {
-  saveSubtitle(jpPath, path.join(subtitlesDir, `${epId}.ja.srt`));
-  if (enPath) saveSubtitle(enPath, path.join(subtitlesDir, `${epId}.en.srt`));
+  saveSubtitle(jpPath, canonicalJp);
+  if (enPath) saveSubtitle(enPath, canonicalEn);
 } else {
-  saveSubtitle(jpPath, path.join(subtitlesDir, `${epId}.txt`));
+  saveSubtitle(jpPath, canonicalJp);
 }
+
+// Use canonical paths when calling process.js (originals may have been deleted)
+const procJpPath = fs.existsSync(canonicalJp) ? canonicalJp : jpPath;
+const procEnPath = canonicalEn && fs.existsSync(canonicalEn) ? canonicalEn : enPath;
 
 // ── 5. 執行 process.js ────────────────────────────────────
 const outputPath = path.join(rootDir, 'data', `${epKey}.json`);
 const processJs  = path.join(__dirname, 'process.js');
 
-let cmd = `node "${processJs}" "${jpPath}" "${outputPath}" --episode "${epId}" --title "${titleStr}"`;
-if (isSrt && enPath) cmd += ` --en-srt "${enPath}"`;
+let cmd = `node "${processJs}" "${procJpPath}" "${outputPath}" --episode "${epId}" --title "${titleStr}"`;
+if (isSrt && procEnPath) cmd += ` --en-srt "${procEnPath}"`;
 
 console.log(`⚙️  Running process.js → ${outputPath}`);
 try {
@@ -245,7 +252,14 @@ if (fs.existsSync(episodesPath)) {
 }
 
 const existing = episodes.findIndex(e => e.id === epId);
-const entry = { id: epId, key: epKey, label, titleJa, titleEn, file: `data/${epKey}.json` };
+// Carry over youtubeId from episode-titles.json if available
+const titlesDb = (() => {
+  const p = path.join(rootDir, 'data', 'episode-titles.json');
+  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {};
+})();
+const youtubeId = titlesDb[epId]?.youtubeId || null;
+const entry = { id: epId, key: epKey, label, titleJa, titleEn, file: `data/${epKey}.json`,
+                ...(youtubeId ? { youtubeId } : {}) };
 if (existing >= 0) {
   episodes[existing] = entry;
   console.log(`🔄 Updated existing entry for ${epId}`);

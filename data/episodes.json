@@ -5,7 +5,8 @@
     "label": "S1 · E01",
     "titleJa": "オペレーション〈梟〉",
     "titleEn": "Operation Strix",
-    "file": "data/ep01.json"
+    "file": "data/ep01.json",
+    "youtubeId": "cdBebRi3Doo"
   },
   {
     "id": "S1E02",
@@ -13,7 +14,8 @@
     "label": "S1 · E02",
     "titleJa": "妻役を確保せよ",
     "titleEn": "Secure a Wife",
-    "file": "data/ep02.json"
+    "file": "data/ep02.json",
+    "youtubeId": "qEh-q_n_BaM"
   },
   {
     "id": "S1E03",
@@ -21,7 +23,8 @@
     "label": "S1 · E03",
     "titleJa": "受験対策をせよ",
     "titleEn": "Prepare for the Interview",
-    "file": "data/ep03.json"
+    "file": "data/ep03.json",
+    "youtubeId": "RUWDyXW3sFI"
   },
   {
     "id": "S1E04",
@@ -29,23 +32,35 @@
     "label": "S1 · E04",
     "titleJa": "名門校面接試験",
     "titleEn": "The Prestigious School's Interview",
-    "file": "data/ep04.json"
+    "file": "data/ep04.json",
+    "youtubeId": "xxE0_YLFrz4"
   },
   {
     "id": "S1E05",
     "key": "ep05",
     "label": "S1 · E05",
-    "titleJa": "合否の行方 / Will They Pass?",
-    "titleEn": "",
-    "file": "data/ep05.json"
+    "titleJa": "合否の行方",
+    "titleEn": "Will They Pass?",
+    "file": "data/ep05.json",
+    "youtubeId": "sRQ14pQob8Y"
+  },
+  {
+    "id": "S1E06",
+    "key": "ep06",
+    "label": "S1 · E06",
+    "titleJa": "ナカヨシ作戦",
+    "titleEn": "The Friendship Scheme",
+    "file": "data/ep06.json",
+    "youtubeId": "KUExP6Hp0sQ"
   },
   {
     "id": "S1E07",
     "key": "ep07",
     "label": "S1 · E07",
-    "titleJa": "",
-    "titleEn": "",
-    "file": "data/ep07.json"
+    "titleJa": "標的（ターゲット）の次男",
+    "titleEn": "The Target's Second Son",
+    "file": "data/ep07.json",
+    "youtubeId": "jazoRl7_yQU"
   },
   {
     "id": "S1E08",
@@ -53,7 +68,8 @@
     "label": "S1 · E08",
     "titleJa": "対秘密警察偽装作戦",
     "titleEn": "The Counter-Secret Police Cover Operation",
-    "file": "data/ep08.json"
+    "file": "data/ep08.json",
+    "youtubeId": "srNjuS92x_A"
   },
   {
     "id": "S1E09",
@@ -61,7 +77,8 @@
     "label": "S1 · E09",
     "titleJa": "ラブラブを見せつけよ",
     "titleEn": "Show Off How in Love You Are",
-    "file": "data/ep09.json"
+    "file": "data/ep09.json",
+    "youtubeId": "v3y8AeonJ9I"
   },
   {
     "id": "S1E10",
@@ -69,7 +86,8 @@
     "label": "S1 · E10",
     "titleJa": "ドッジボール大作戦",
     "titleEn": "The Great Dodgeball Plan",
-    "file": "data/ep10.json"
+    "file": "data/ep10.json",
+    "youtubeId": "WSRL0ttGHt8"
   },
   {
     "id": "S1E11",
@@ -77,7 +95,8 @@
     "label": "S1 · E11",
     "titleJa": "〈星（ステラ）〉",
     "titleEn": "Stella",
-    "file": "data/ep11.json"
+    "file": "data/ep11.json",
+    "youtubeId": "SUvRg-xVJmo"
   },
   {
     "id": "S1E12",
@@ -85,7 +104,8 @@
     "label": "S1 · E12",
     "titleJa": "ペンギンパーク",
     "titleEn": "Penguin Park",
-    "file": "data/ep12.json"
+    "file": "data/ep12.json",
+    "youtubeId": "qbK_vU2eLfc"
   },
   {
     "id": "S1E13",
@@ -93,7 +113,8 @@
     "label": "S1 · E13",
     "titleJa": "プロジェクト〈アップル〉",
     "titleEn": "Project Apple",
-    "file": "data/ep13.json"
+    "file": "data/ep13.json",
+    "youtubeId": "dKzJ2akUCSQ"
   },
   {
     "id": "S1E14",
@@ -101,7 +122,8 @@
     "label": "S1 · E14",
     "titleJa": "時限爆弾を解除せよ",
     "titleEn": "Disarm the Time Bomb",
-    "file": "data/ep14.json"
+    "file": "data/ep14.json",
+    "youtubeId": "NUJ7KEkg4RE"
   },
   {
     "id": "S1E15",
@@ -109,7 +131,8 @@
     "label": "S1 · E15",
     "titleJa": "新しい家族",
     "titleEn": "A New Family Member",
-    "file": "data/ep15.json"
+    "file": "data/ep15.json",
+    "youtubeId": "wWOT_riNw_M"
   },
   {
     "id": "S1E16",
@@ -117,7 +140,8 @@
     "label": "S1 · E16",
     "titleJa": "ヨル's キッチン",
     "titleEn": "Yor's Kitchen",
-    "file": "data/ep16.json"
+    "file": "data/ep16.json",
+    "youtubeId": "Ngz4Qzswzpo"
   },
   {
     "id": "S1E17",
@@ -125,7 +149,8 @@
     "label": "S1 · E17",
     "titleJa": "グリフォン作戦を敢行せよ",
     "titleEn": "Carry Out the Griffin Plan",
-    "file": "data/ep17.json"
+    "file": "data/ep17.json",
+    "youtubeId": "U5CyMjS3RwI"
   },
   {
     "id": "S1E18",
@@ -133,7 +158,8 @@
     "label": "S1 · E18",
     "titleJa": "家庭教師の叔父",
     "titleEn": "Uncle the Private Tutor",
-    "file": "data/ep18.json"
+    "file": "data/ep18.json",
+    "youtubeId": "EYpliabF700"
   },
   {
     "id": "S1E19",
@@ -141,7 +167,8 @@
     "label": "S1 · E19",
     "titleJa": "デズモンドへの復讐計画",
     "titleEn": "A Revenge Plot Against Desmond",
-    "file": "data/ep19.json"
+    "file": "data/ep19.json",
+    "youtubeId": "33hJRImA0y8"
   },
   {
     "id": "S1E20",
@@ -149,7 +176,8 @@
     "label": "S1 · E20",
     "titleJa": "総合病院を調査せよ",
     "titleEn": "Investigate the General Hospital",
-    "file": "data/ep20.json"
+    "file": "data/ep20.json",
+    "youtubeId": "lnBomjb9oJI"
   },
   {
     "id": "S1E21",
@@ -157,7 +185,8 @@
     "label": "S1 · E21",
     "titleJa": "〈夜帷（とばり）〉",
     "titleEn": "Nightfall",
-    "file": "data/ep21.json"
+    "file": "data/ep21.json",
+    "youtubeId": "_Zv8yz69q0w"
   },
   {
     "id": "S1E22",
@@ -165,7 +194,8 @@
     "label": "S1 · E22",
     "titleJa": "地下テニス大会：ザ・キャンベルドン",
     "titleEn": "The Underground Tennis Tournament: The Campbelldon",
-    "file": "data/ep22.json"
+    "file": "data/ep22.json",
+    "youtubeId": "tAPl_lhWRnQ"
   },
   {
     "id": "S1E23",
@@ -173,7 +203,8 @@
     "label": "S1 · E23",
     "titleJa": "揺るがぬ軌道",
     "titleEn": "The Unwavering Path",
-    "file": "data/ep23.json"
+    "file": "data/ep23.json",
+    "youtubeId": "2lSF-A3PX54"
   },
   {
     "id": "S1E24",
@@ -181,6 +212,7 @@
     "label": "S1 · E24",
     "titleJa": "母役と妻役",
     "titleEn": "The Role of a Mother and Wife",
-    "file": "data/ep24.json"
+    "file": "data/ep24.json",
+    "youtubeId": "hRHAtclwHUY"
   }
 ]

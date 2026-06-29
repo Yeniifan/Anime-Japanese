@@ -300,6 +300,27 @@
     cursor: pointer;
   }
 
+  /* ── YouTube embed ──────────────────────────── */
+  .yt-wrap {
+    position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 */
+    background: #000; border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 12px;
+  }
+  .yt-wrap iframe {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; border: none;
+  }
+  .yt-wrap.hidden { display: none; }
+  .btn-yt {
+    font-size: 12px; padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: white; cursor: pointer; color: var(--text-sub);
+    font-family: inherit; transition: all .15s;
+    display: none; /* shown only when episode has youtubeId */
+  }
+  .btn-yt.visible { display: inline-flex; align-items: center; gap: 4px; }
+  .btn-yt.on { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+
   .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
   .err { text-align: center; padding: 40px 20px; color: #EF4444; font-size: 14px; line-height: 1.8; }
   code { background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
@@ -358,6 +379,7 @@
   <span class="logo">SPY×FAMILY 日本語</span>
   <select class="ep-select" id="ep-select"></select>
   <div class="header-right">
+    <button class="btn-yt" id="yt-btn">▶ 影片</button>
     <button class="btn-furigana on" id="fg-btn">ふりがな ON</button>
     <button class="btn-furigana" id="en-btn">翻譯</button>
     <div class="tabs">
@@ -793,9 +815,26 @@ async function loadEpisode(file) {
   quizQuestions = buildQuizQuestions(data.lines, vocabBases);
   document.title = `SPY×FAMILY 日本語 | ${data.episode}`;
 
+  // ── YouTube embed
+  const ytBtn  = document.getElementById('yt-btn');
+  const epEntry = (window._episodes || []).find(e => e.file === file);
+  const ytId    = epEntry?.youtubeId || null;
+  ytBtn.classList.toggle('visible', !!ytId);
+  ytBtn.classList.remove('on');
+  // Remove any existing embed
+  const oldYt = document.getElementById('yt-container');
+  if (oldYt) oldYt.remove();
+
   // ── dialogue
   const dv = document.getElementById('dialogue-view');
   dv.innerHTML = '';
+  if (ytId) {
+    const ytContainer = document.createElement('div');
+    ytContainer.id = 'yt-container';
+    ytContainer.className = 'yt-wrap hidden';
+    ytContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe>`;
+    dv.appendChild(ytContainer);
+  }
   dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
 
   // ── vocab grid
@@ -818,6 +857,8 @@ async function init() {
   try {
     episodes = await fetch(`./data/episodes.json?v=${Date.now()}`).then(r => r.json());
   } catch(e) { /* fallback to default */ }
+
+  window._episodes = episodes; // make available to loadEpisode
 
   // ── Populate dropdown
   const sel = document.getElementById('ep-select');
@@ -854,6 +895,15 @@ async function init() {
     vocabPos = vocabPos === b.dataset.pos ? null : b.dataset.pos;
     document.querySelectorAll('.pf-btn').forEach(x => x.classList.toggle('on', x.dataset.pos === vocabPos));
     document.getElementById('vg-wrap').innerHTML = buildVocab(epData.vocabulary);
+  });
+
+  // ── YouTube toggle (once)
+  document.getElementById('yt-btn').addEventListener('click', function() {
+    const container = document.getElementById('yt-container');
+    if (!container) return;
+    const hidden = container.classList.toggle('hidden');
+    this.classList.toggle('on', !hidden);
+    this.textContent = hidden ? '▶ 影片' : '✕ 影片';
   });
 
   // ── Furigana toggle (once)
