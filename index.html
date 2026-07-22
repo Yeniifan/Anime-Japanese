@@ -123,7 +123,7 @@
     font-size: 12px; color: #9CA3AF; line-height: 1.6;
     padding-bottom: 6px; display: none;
   }
-  body.show-en .line-en { display: block; }
+  /* line-en hidden: translation data kept in JSON but not displayed */
   ruby { ruby-align: center; }
   rt { font-size: 10px; color: #9CA3AF; transition: opacity .2s; }
   body.hide-furigana rt { opacity: 0; }
@@ -483,7 +483,7 @@
   <div class="header-right">
     <button class="btn-yt" id="yt-btn">▶ 影片</button>
     <button class="btn-furigana on" id="fg-btn">ふりがな ON</button>
-    <button class="btn-furigana" id="en-btn">翻譯</button>
+
     <div class="tabs">
       <button class="tab active" data-tab="dialogue">台詞</button>
       <button class="tab" data-tab="vocab">語彙</button>
@@ -501,10 +501,10 @@
     <div class="vocab-bar">
       <input type="search" class="vocab-search" id="vocab-search" placeholder="単語を検索…">
       <div class="pos-filters" id="pos-filters">
-        <button class="pf-btn" data-pos="名詞">noun</button>
-        <button class="pf-btn" data-pos="動詞">verb</button>
-        <button class="pf-btn" data-pos="形容詞">adj</button>
-        <button class="pf-btn" data-pos="副詞">adv</button>
+        <button class="pf-btn" data-pos="名詞">名詞</button>
+        <button class="pf-btn" data-pos="動詞">動詞</button>
+        <button class="pf-btn" data-pos="形容詞">形容詞</button>
+        <button class="pf-btn" data-pos="副詞">副詞</button>
       </div>
     </div>
     <div id="vg-wrap"></div>
@@ -514,7 +514,7 @@
 </main>
 
 <footer style="text-align:center;padding:16px 20px;font-size:11px;color:#9CA3AF;border-top:1px solid #F3F4F6;margin-top:8px">
-  Japanese subtitles from <a href="https://kitsunekko.net" target="_blank" rel="noopener" style="color:#9CA3AF;text-decoration:underline dotted">kitsunekko.net</a> · English subtitles from Netflix
+  日語字幕來自 <a href="https://kitsunekko.net" target="_blank" rel="noopener" style="color:#9CA3AF;text-decoration:underline dotted">kitsunekko.net</a> · 英語字幕來自 Netflix
 </footer>
 
 <div class="overlay" id="overlay"></div>
@@ -544,7 +544,7 @@ const CHAR_COLOR = {
   'フランキー':'#10B981','Franky':'#10B981',
   'ナレーター':'#9CA3AF','Narrator':'#9CA3AF',
 };
-const POS_EN = { '名詞':'noun','動詞':'verb','形容詞':'adj','副詞':'adv' };
+const POS_ZH = { '名詞':'名詞','動詞':'動詞','形容詞':'形容詞','副詞':'副詞' };
 const PALETTE = ['#8B5CF6','#F59E0B','#06B6D4','#84CC16','#F97316','#14B8A6','#A855F7'];
 
 let epData    = null;
@@ -895,11 +895,11 @@ function openPanel(base) {
     ? `<span class="p-pitch">[${v.pitch}]</span>` : '';
   document.getElementById('p-read').innerHTML = esc(v.reading) + pitchHtml;
 
-  document.getElementById('p-pos').textContent  = POS_EN[v.pos] || v.pos;
+  document.getElementById('p-pos').textContent  = POS_ZH[v.pos] || v.pos;
   document.getElementById('p-freq').textContent = `このエピソードで ${v.count} 回登場`;
 
   const enEl = document.getElementById('p-en');
-  enEl.textContent = (v.en && v.en.length) ? v.en.join(' · ') : '';
+  enEl.textContent = (v.zh && v.zh.length) ? v.zh.join(' · ') : '';
 
   const box = document.getElementById('p-examples');
   box.innerHTML = v.lineIds.slice(0,5).map(id => {
@@ -985,7 +985,6 @@ function showQuestion(idx) {
       <div class="q-progress">${idx + 1} / ${quizQuestions.length}</div>
       ${q.line.character
         ? `<div class="q-char" style="color:${col}">${esc(q.line.character)}</div>` : ''}
-      <div class="q-en">${esc(q.line.en)}</div>
       <div class="q-jp" id="q-jp">${quizTokensHtml(q.tokens, q.blankIdx, null)}</div>
       <div class="q-result" id="q-result"></div>
       <input class="q-input" id="q-input" type="text"
@@ -1245,14 +1244,6 @@ async function init() {
     this.classList.toggle('on', fgOn);
   });
 
-  // ── EN toggle (once)
-  let enOn = false;
-  document.getElementById('en-btn').addEventListener('click', function() {
-    enOn = !enOn;
-    document.body.classList.toggle('show-en', enOn);
-    this.textContent = enOn ? '翻譯 ON' : '翻譯';
-    this.classList.toggle('on', enOn);
-  });
 
   // ── Word clicks (once)
   document.addEventListener('click', e => {
