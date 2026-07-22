@@ -321,24 +321,27 @@
 
   /* ── Desktop side-by-side layout ────────────── */
   @media (min-width: 768px) {
-    main.has-video { max-width: 1400px; }
-    #dialogue-view.has-video {
+    /* main becomes flex row */
+    main.has-video {
       display: flex; gap: 24px; align-items: flex-start;
+      max-width: 1400px;
     }
-    #dialogue-view.has-video > .script-lines {
+    /* Left column: dialogue fills remaining space */
+    main.has-video #dialogue-view {
       flex: 1; min-width: 0;
+      display: block !important; /* always visible regardless of .active */
     }
-    .yt-side {
+    /* Right column: video + vocab/quiz, sticky */
+    #right-col {
       width: 520px; flex-shrink: 0;
       position: sticky; top: 68px;
       max-height: calc(100vh - 80px); overflow-y: auto;
     }
-    .yt-side .yt-wrap { margin-bottom: 8px; }
-    /* Hide toggle button on desktop — video is always in the side panel */
+    #right-col .yt-wrap { margin-bottom: 8px; }
+    #right-col #vocab-view,
+    #right-col #quiz-view { padding: 0; }
+    /* Hide mobile toggle button on desktop */
     .btn-yt { display: none !important; }
-    /* vocab/quiz inside .yt-side strip extra padding */
-    main.has-video #vocab-view,
-    main.has-video #quiz-view { padding: 0; }
   }
 
   .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
@@ -848,33 +851,35 @@ async function loadEpisode(file) {
   const ytId    = epEntry?.youtubeId || null;
   const isDesktop = window.innerWidth >= 768;
 
-  // Reset classes
-  mainEl.classList.toggle('has-video', !!(ytId && isDesktop));
   ytBtn.classList.remove('on');
+
+  // ── Clean up previous #right-col, restore vocab/quiz to <main>
+  const _vv = document.getElementById('vocab-view');
+  const _qv = document.getElementById('quiz-view');
+  const oldRightCol = document.getElementById('right-col');
+  if (oldRightCol) {
+    if (_vv) mainEl.appendChild(_vv);
+    if (_qv) mainEl.appendChild(_qv);
+    oldRightCol.remove();
+  }
 
   // ── dialogue
   const dv = document.getElementById('dialogue-view');
-
-  // Rescue #vocab-view / #quiz-view from .yt-side before wiping dv
-  const _vv = document.getElementById('vocab-view');
-  const _qv = document.getElementById('quiz-view');
-  if (_vv && _vv.parentElement !== mainEl) mainEl.appendChild(_vv);
-  if (_qv && _qv.parentElement !== mainEl) mainEl.appendChild(_qv);
-
   dv.innerHTML = '';
-  dv.classList.toggle('has-video', !!(ytId && isDesktop));
+  dv.classList.remove('has-video');
+  mainEl.classList.toggle('has-video', !!(ytId && isDesktop));
 
   if (ytId && isDesktop) {
-    // Desktop: script left, video + vocab/quiz right (sticky)
+    // Desktop: dialogue left, right-col with video + vocab/quiz
     ytBtn.classList.remove('visible');
     dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
-    const ytSide = document.createElement('div');
-    ytSide.className = 'yt-side';
-    ytSide.innerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe></div>`;
-    // Move vocab and quiz panels into the right column
-    ytSide.appendChild(document.getElementById('vocab-view'));
-    ytSide.appendChild(document.getElementById('quiz-view'));
-    dv.appendChild(ytSide);
+
+    const rightCol = document.createElement('div');
+    rightCol.id = 'right-col';
+    rightCol.innerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe></div>`;
+    rightCol.appendChild(document.getElementById('vocab-view'));
+    rightCol.appendChild(document.getElementById('quiz-view'));
+    mainEl.appendChild(rightCol);
   } else {
     // Mobile: toggle button shows/hides video above script
     ytBtn.classList.toggle('visible', !!ytId);
@@ -932,15 +937,15 @@ async function init() {
       tab.classList.add('active');
 
       const desktopVideo = !!document.querySelector('main.has-video');
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
       if (desktopVideo) {
-        // Dialogue always stays active (flex layout); vocab/quiz appear in .yt-side
-        document.getElementById('dialogue-view').classList.add('active');
-        if (tab.dataset.tab !== 'dialogue') {
+        // Dialogue always visible (CSS); only toggle vocab/quiz in #right-col
+        document.querySelectorAll('#vocab-view, #quiz-view').forEach(v => v.classList.remove('active'));
+        if (tab.dataset.tab === 'vocab' || tab.dataset.tab === 'quiz') {
           document.getElementById(tab.dataset.tab + '-view').classList.add('active');
         }
       } else {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(tab.dataset.tab + '-view').classList.add('active');
       }
 
