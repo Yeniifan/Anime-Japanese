@@ -993,6 +993,9 @@ function showReviewCard(idx) {
     <div class="rv-card">
       <div class="rv-progress">${idx + 1} / ${reviewQueue.length}</div>
       <div class="rv-word">${esc(bm.word)}</div>
+      <div style="margin-bottom:8px">
+        <button class="play-btn" data-jp="${esc(bm.word)}" title="読み上げ" style="font-size:13px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center">▶</button>
+      </div>
       <div class="rv-hint">${esc(bm.episode)} · ${bm.pos ? POS_ZH[bm.pos] || bm.pos : ''}</div>
       <button class="rv-reveal-btn" id="rv-reveal">顯示解釋</button>
       <div class="rv-back" id="rv-back">
@@ -1074,6 +1077,7 @@ function buildSavedView() {
     <div class="saved-card">
       <div class="saved-card-top">
         <span class="saved-word">${esc(b.word)}</span>
+        <button class="play-btn" data-jp="${esc(b.word)}" title="読み上げ" style="font-size:11px;width:22px;height:22px;flex-shrink:0">▶</button>
         <span class="saved-reading">${esc(b.reading)}${b.pitch !== null ? ` [${b.pitch}]` : ''}</span>
         <span class="pos-pip">${esc(POS_ZH[b.pos] || b.pos)}</span>
         <span class="saved-ep">${esc(b.episode)}</span>
