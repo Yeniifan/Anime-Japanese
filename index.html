@@ -364,13 +364,22 @@
   #yt-player { position: absolute; inset: 0; }
 
   /* ── Timestamp sync ──────────────────────────── */
-  .script-line[data-start] { cursor: pointer; }
-  .script-line[data-start]:hover { background: rgba(0,0,0,0.025); border-radius: 4px; }
   .script-line.now-playing {
     background: rgba(59,130,246,0.08);
     border-left: 3px solid #3B82F6;
     padding-left: 4px; border-radius: 0 4px 4px 0;
   }
+  /* Seek button — appears at end of sentence on hover */
+  .seek-btn {
+    border: none; background: transparent; cursor: pointer;
+    font-size: 10px; color: #D1D5DB;
+    padding: 0 3px; margin-left: 3px;
+    opacity: 0; transition: opacity .15s, color .15s;
+    vertical-align: middle; line-height: 1;
+    flex-shrink: 0;
+  }
+  .script-line:hover .seek-btn { opacity: 1; }
+  .seek-btn:hover { color: #3B82F6; }
   .btn-yt {
     font-size: 12px; padding: 4px 10px;
     border: 1px solid var(--border); border-radius: 999px;
@@ -727,8 +736,10 @@ function buildDialogue(lines, titleJa) {
     const endMs   = grp.lines[grp.lines.length - 1].endMs;
     const timeAttrs = startMs != null
       ? ` data-start="${startMs}" data-end="${endMs}"` : '';
+    const seekBtn = startMs != null
+      ? `<button class="seek-btn" title="影片跳至此處">⏵</button>` : '';
     buf.push(`<div class="script-line${thought ? ' is-thought' : ''}"${timeAttrs}>
-  <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}</div>
+  <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}${seekBtn}</div>
 </div>`);
   }
   const div = document.createElement('div');
@@ -1234,11 +1245,14 @@ async function init() {
     if (pb) { speak(pb.dataset.jp, pb); return; }
     const w = e.target.closest('.w');
     if (w) { openPanel(w.dataset.b); return; }
-    // Click script line → seek video to timestamp
-    const sl = e.target.closest('.script-line[data-start]');
-    if (sl && ytPlayer && typeof ytPlayer.seekTo === 'function') {
-      ytPlayer.seekTo(+sl.dataset.start / 1000, true);
-      ytPlayer.playVideo();
+    // Seek button at sentence end → seek video to timestamp
+    const sk = e.target.closest('.seek-btn');
+    if (sk) {
+      const sl = sk.closest('.script-line[data-start]');
+      if (sl && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+        ytPlayer.seekTo(+sl.dataset.start / 1000, true);
+        ytPlayer.playVideo();
+      }
       return;
     }
     const vc = e.target.closest('.vc');
