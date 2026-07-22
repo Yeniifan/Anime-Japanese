@@ -298,6 +298,57 @@
     cursor: pointer;
   }
 
+  /* ── Bookmarks ──────────────────────────────── */
+  .w.saved { background: rgba(234, 179, 8, 0.28); }
+  .w.saved:hover { background: #FDE047; }
+  .bookmark-btn {
+    border: none; background: transparent; cursor: pointer;
+    font-size: 18px; padding: 0 4px; line-height: 1;
+    color: #D1D5DB; transition: color .15s, transform .1s;
+  }
+  .bookmark-btn.on { color: #F59E0B; }
+  .bookmark-btn:hover { transform: scale(1.2); }
+
+  .saved-empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-sub); font-size: 14px; line-height: 1.8;
+  }
+  .saved-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .saved-card-top {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .saved-word { font-size: 22px; font-weight: 700; }
+  .saved-reading { font-size: 14px; color: var(--text-sub); }
+  .saved-ep {
+    margin-left: auto; font-size: 11px; color: var(--text-sub);
+    background: #F3F4F6; padding: 2px 8px; border-radius: 999px;
+  }
+  .saved-del {
+    border: none; background: transparent; cursor: pointer;
+    color: #D1D5DB; font-size: 14px; padding: 0 2px;
+    transition: color .15s;
+  }
+  .saved-del:hover { color: #EF4444; }
+  .saved-zh { font-size: 13px; color: #374151; margin-bottom: 4px; }
+  .saved-ex {
+    font-size: 14px; line-height: 2; color: var(--text-sub);
+    border-left: 3px solid #FDE68A; padding-left: 8px;
+  }
+  .saved-export {
+    display: flex; justify-content: flex-end; margin-bottom: 12px;
+  }
+  .saved-export-btn {
+    font-size: 12px; padding: 5px 14px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: white; cursor: pointer; color: var(--text-sub);
+    font-family: inherit; transition: all .15s;
+  }
+  .saved-export-btn:hover { border-color: #9CA3AF; color: var(--text); }
+
   /* ── YouTube embed ──────────────────────────── */
   .yt-wrap {
     position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 */
@@ -415,6 +466,7 @@
       <button class="tab active" data-tab="dialogue">台詞</button>
       <button class="tab" data-tab="vocab">語彙</button>
       <button class="tab" data-tab="quiz">練習</button>
+      <button class="tab" data-tab="saved">收藏</button>
     </div>
   </div>
 </header>
@@ -436,6 +488,7 @@
     <div id="vg-wrap"></div>
   </div>
   <div class="view" id="quiz-view"></div>
+  <div class="view" id="saved-view"><div id="saved-list"></div></div>
 </main>
 
 <footer style="text-align:center;padding:16px 20px;font-size:11px;color:#9CA3AF;border-top:1px solid #F3F4F6;margin-top:8px">
@@ -449,6 +502,7 @@
   <div class="panel-top">
     <span class="p-word" id="p-word"></span>
     <button class="play-btn" id="p-play" title="読み上げ" style="font-size:13px;width:26px;height:26px">▶</button>
+    <button class="bookmark-btn" id="p-bookmark" title="收藏">☆</button>
     <span class="p-read" id="p-read"></span>
     <span class="p-pos"  id="p-pos"></span>
   </div>
@@ -474,6 +528,7 @@ const PALETTE = ['#8B5CF6','#F59E0B','#06B6D4','#84CC16','#F97316','#14B8A6','#A
 let epData    = null;
 let vocabBases = null;  // Set of word bases in vocabulary (for clickability)
 let fgOn = true;
+let bookmarks = {};  // { [word]: { word, reading, pitch, pos, zh, en, episode, exampleJp, exampleEn, savedAt } }
 
 // ── Quiz state ────────────────────────────────────────────
 let quizQuestions   = [];
@@ -645,6 +700,92 @@ function buildVocab(vocab) {
           <div class="vocab-grid">${grid}</div>`;
 }
 
+// ── Bookmarks ─────────────────────────────────────────────
+function loadBookmarks() {
+  try { bookmarks = JSON.parse(localStorage.getItem('animejp_bookmarks') || '{}'); }
+  catch { bookmarks = {}; }
+}
+function saveBookmarks() {
+  localStorage.setItem('animejp_bookmarks', JSON.stringify(bookmarks));
+}
+
+function toggleBookmark(base) {
+  if (bookmarks[base]) {
+    delete bookmarks[base];
+  } else {
+    const v = epData && epData.vocabulary.find(x => x.word === base);
+    if (!v) return;
+    const exLine = v.lineIds.length ? epData.lines[v.lineIds[0]] : null;
+    bookmarks[base] = {
+      word: v.word, reading: v.reading, pitch: v.pitch,
+      pos: v.pos, zh: v.zh, en: v.en,
+      episode: epData.episode,
+      exampleJp: exLine ? exLine.jp : '',
+      exampleEn: exLine ? exLine.en : '',
+      savedAt: Date.now()
+    };
+  }
+  saveBookmarks();
+  updateBookmarkBtn(base);
+  updateWordHighlights();
+  if (document.getElementById('saved-view').classList.contains('active')) buildSavedView();
+}
+
+function updateBookmarkBtn(base) {
+  const btn = document.getElementById('p-bookmark');
+  if (!btn) return;
+  const on = !!bookmarks[base];
+  btn.textContent = on ? '★' : '☆';
+  btn.classList.toggle('on', on);
+  btn.dataset.base = base;
+}
+
+function updateWordHighlights() {
+  document.querySelectorAll('.w').forEach(el =>
+    el.classList.toggle('saved', !!bookmarks[el.dataset.b]));
+}
+
+function buildSavedView() {
+  const el = document.getElementById('saved-list');
+  const items = Object.values(bookmarks).sort((a, b) => b.savedAt - a.savedAt);
+  if (!items.length) {
+    el.innerHTML = '<div class="saved-empty">まだ収藏した単語はありません<br>単語をクリックして ☆ で收藏できます</div>';
+    return;
+  }
+  const exportBtn = `<div class="saved-export">
+    <button class="saved-export-btn" id="export-csv">↓ CSV 匯出 (Anki)</button>
+  </div>`;
+  const cards = items.map(b => `
+    <div class="saved-card">
+      <div class="saved-card-top">
+        <span class="saved-word">${esc(b.word)}</span>
+        <span class="saved-reading">${esc(b.reading)}${b.pitch !== null ? ` [${b.pitch}]` : ''}</span>
+        <span class="pos-pip">${esc(POS_EN[b.pos] || b.pos)}</span>
+        <span class="saved-ep">${esc(b.episode)}</span>
+        <button class="saved-del" data-word="${esc(b.word)}" title="移除">✕</button>
+      </div>
+      ${b.zh.length ? `<div class="saved-zh">${esc(b.zh.slice(0, 3).join(' · '))}</div>` : ''}
+      ${b.exampleJp ? `<div class="saved-ex">${esc(b.exampleJp)}</div>` : ''}
+    </div>`).join('');
+  el.innerHTML = exportBtn + cards;
+
+  document.getElementById('export-csv')?.addEventListener('click', exportCsv);
+}
+
+function exportCsv() {
+  const rows = [['單字','讀音','詞性','中文','英文','例句(JP)','例句(EN)','集數']];
+  Object.values(bookmarks).forEach(b => {
+    rows.push([b.word, b.reading, POS_EN[b.pos]||b.pos,
+               b.zh.join('/'), b.en.join('/'),
+               b.exampleJp, b.exampleEn, b.episode]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'animejp_bookmarks.csv';
+  a.click();
+}
+
 // ── word panel ────────────────────────────────────────────
 function openPanel(base) {
   const v = epData.vocabulary.find(x => x.word === base);
@@ -671,9 +812,10 @@ function openPanel(base) {
       <div class="ex-jp">${tokensHtml(displayTokens(ln))}</div>
     </div>` : '';
   }).join('');
-  // highlight
+  // highlight + bookmark state
   document.querySelectorAll('.w').forEach(el =>
     el.classList.toggle('hi', el.dataset.b === base));
+  updateBookmarkBtn(base);
   document.getElementById('panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
 }
@@ -853,13 +995,15 @@ async function loadEpisode(file) {
 
   ytBtn.classList.remove('on');
 
-  // ── Clean up previous #right-col, restore vocab/quiz to <main>
+  // ── Clean up previous #right-col, restore views to <main>
   const _vv = document.getElementById('vocab-view');
   const _qv = document.getElementById('quiz-view');
+  const _sv = document.getElementById('saved-view');
   const oldRightCol = document.getElementById('right-col');
   if (oldRightCol) {
     if (_vv) mainEl.appendChild(_vv);
     if (_qv) mainEl.appendChild(_qv);
+    if (_sv) mainEl.appendChild(_sv);
     oldRightCol.remove();
   }
 
@@ -879,6 +1023,7 @@ async function loadEpisode(file) {
     rightCol.innerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe></div>`;
     rightCol.appendChild(document.getElementById('vocab-view'));
     rightCol.appendChild(document.getElementById('quiz-view'));
+    rightCol.appendChild(document.getElementById('saved-view'));
     mainEl.appendChild(rightCol);
   } else {
     // Mobile: toggle button shows/hides video above script
@@ -899,6 +1044,9 @@ async function loadEpisode(file) {
   // ── quiz view reset
   document.getElementById('quiz-view').innerHTML = '';
 
+  // ── apply bookmark highlights after dialogue is rendered
+  updateWordHighlights();
+
   // On desktop+video: default to vocab tab (shows in right panel); else dialogue
   if (ytId && isDesktop) {
     document.querySelector('[data-tab="vocab"]').click();
@@ -912,6 +1060,8 @@ async function loadEpisode(file) {
 
 // ── init (runs once) ──────────────────────────────────────
 async function init() {
+  loadBookmarks();
+
   // ── Load episodes list
   let episodes = [{ id:'S1E01', label:'S1 · E01', file:'data/ep01.json' }];
   try {
@@ -939,9 +1089,9 @@ async function init() {
       const desktopVideo = !!document.querySelector('main.has-video');
 
       if (desktopVideo) {
-        // Dialogue always visible (CSS); only toggle vocab/quiz in #right-col
-        document.querySelectorAll('#vocab-view, #quiz-view').forEach(v => v.classList.remove('active'));
-        if (tab.dataset.tab === 'vocab' || tab.dataset.tab === 'quiz') {
+        // Dialogue always visible (CSS); only toggle vocab/quiz/saved in #right-col
+        document.querySelectorAll('#vocab-view, #quiz-view, #saved-view').forEach(v => v.classList.remove('active'));
+        if (['vocab','quiz','saved'].includes(tab.dataset.tab)) {
           document.getElementById(tab.dataset.tab + '-view').classList.add('active');
         }
       } else {
@@ -953,6 +1103,7 @@ async function init() {
         quizInitialized = true;
         showQuestion(0);
       }
+      if (tab.dataset.tab === 'saved') buildSavedView();
     })
   );
 
@@ -1014,6 +1165,22 @@ async function init() {
   // ── Panel close (once)
   document.getElementById('panel-close').addEventListener('click', closePanel);
   document.getElementById('overlay').addEventListener('click', closePanel);
+
+  // ── Bookmark button in panel (once)
+  document.getElementById('p-bookmark').addEventListener('click', function() {
+    if (this.dataset.base) toggleBookmark(this.dataset.base);
+  });
+
+  // ── Saved-list events: delete card (delegated, once)
+  document.addEventListener('click', e => {
+    const del = e.target.closest('.saved-del');
+    if (del) {
+      delete bookmarks[del.dataset.word];
+      saveBookmarks();
+      updateWordHighlights();
+      buildSavedView();
+    }
+  });
 
   // ── Load first episode
   await loadEpisode(episodes[0].file);
