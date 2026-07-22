@@ -787,7 +787,7 @@ function buildVocab(vocab) {
       <div class="vc-word">${esc(v.word)}</div>
       <div class="vc-reading">${esc(v.reading)}${esc(pitchStr)}</div>
       <div class="vc-foot">
-        <span class="pos-pip">${esc(POS_EN[v.pos]||v.pos)}</span>
+        <span class="pos-pip">${esc(POS_ZH[v.pos]||v.pos)}</span>
         <span class="freq">×${v.count}</span>
       </div>
     </div>`;
@@ -856,7 +856,7 @@ function buildSavedView() {
       <div class="saved-card-top">
         <span class="saved-word">${esc(b.word)}</span>
         <span class="saved-reading">${esc(b.reading)}${b.pitch !== null ? ` [${b.pitch}]` : ''}</span>
-        <span class="pos-pip">${esc(POS_EN[b.pos] || b.pos)}</span>
+        <span class="pos-pip">${esc(POS_ZH[b.pos] || b.pos)}</span>
         <span class="saved-ep">${esc(b.episode)}</span>
         <button class="saved-del" data-word="${esc(b.word)}" title="移除">✕</button>
       </div>
@@ -871,7 +871,7 @@ function buildSavedView() {
 function exportCsv() {
   const rows = [['單字','讀音','詞性','中文','英文','例句(JP)','例句(EN)','集數']];
   Object.values(bookmarks).forEach(b => {
-    rows.push([b.word, b.reading, POS_EN[b.pos]||b.pos,
+    rows.push([b.word, b.reading, POS_ZH[b.pos]||b.pos,
                b.zh.join('/'), b.en.join('/'),
                b.exampleJp, b.exampleEn, b.episode]);
   });
