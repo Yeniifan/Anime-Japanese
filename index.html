@@ -360,6 +360,17 @@
     width: 100%; height: 100%; border: none;
   }
   .yt-wrap.hidden { display: none; }
+  /* YT IFrame API replaces #yt-player div with iframe — keep it filling .yt-wrap */
+  #yt-player { position: absolute; inset: 0; }
+
+  /* ── Timestamp sync ──────────────────────────── */
+  .script-line[data-start] { cursor: pointer; }
+  .script-line[data-start]:hover { background: rgba(0,0,0,0.025); border-radius: 4px; }
+  .script-line.now-playing {
+    background: rgba(59,130,246,0.08);
+    border-left: 3px solid #3B82F6;
+    padding-left: 4px; border-radius: 0 4px 4px 0;
+  }
   .btn-yt {
     font-size: 12px; padding: 4px 10px;
     border: 1px solid var(--border); border-radius: 999px;
@@ -581,6 +592,61 @@ function speak(text, btn) {
   speechSynthesis.speak(utt);
 }
 
+// ── YouTube IFrame API ────────────────────────────────────
+let ytPlayer    = null;
+let syncInterval = null;
+let _ytReadyCbs  = [];
+let _ytApiLoaded = false;
+
+window.onYouTubeIframeAPIReady = () => {
+  _ytApiLoaded = true;
+  _ytReadyCbs.forEach(cb => cb());
+  _ytReadyCbs = [];
+};
+
+function whenYtReady(cb) {
+  if (_ytApiLoaded) cb(); else _ytReadyCbs.push(cb);
+}
+
+function stopSync() {
+  clearInterval(syncInterval); syncInterval = null;
+  document.querySelectorAll('.script-line.now-playing')
+    .forEach(el => el.classList.remove('now-playing'));
+}
+
+function onYtStateChange(e) {
+  if (e.data === YT.PlayerState.PLAYING) {
+    syncInterval = setInterval(() => {
+      if (!ytPlayer) return;
+      const ms = ytPlayer.getCurrentTime() * 1000;
+      let activeEl = null;
+      document.querySelectorAll('.script-line[data-start]').forEach(el => {
+        const active = +el.dataset.start <= ms && ms < +el.dataset.end;
+        el.classList.toggle('now-playing', active);
+        if (active) activeEl = el;
+      });
+      if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 300);
+  } else {
+    clearInterval(syncInterval); syncInterval = null;
+  }
+}
+
+function createYtPlayer(ytId) {
+  stopSync();
+  if (ytPlayer) { try { ytPlayer.destroy(); } catch(e) {} ytPlayer = null; }
+  whenYtReady(() => {
+    if (!document.getElementById('yt-player')) return; // episode changed before API ready
+    ytPlayer = new YT.Player('yt-player', {
+      videoId: ytId,
+      width: '100%', height: '100%',
+      playerVars: { rel: 0, modestbranding: 1 },
+      events: { onStateChange: onYtStateChange }
+    });
+  });
+}
+
+
 // ── utils ─────────────────────────────────────────────────
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -657,7 +723,11 @@ function buildDialogue(lines, titleJa) {
       return `<div class="jp-text">${tokensHtml(displayTokens(ln))}</div>${enHtml}`;
     }).join('');
 
-    buf.push(`<div class="script-line${thought ? ' is-thought' : ''}">
+    const startMs = grp.lines[0].startMs;
+    const endMs   = grp.lines[grp.lines.length - 1].endMs;
+    const timeAttrs = startMs != null
+      ? ` data-start="${startMs}" data-end="${endMs}"` : '';
+    buf.push(`<div class="script-line${thought ? ' is-thought' : ''}"${timeAttrs}>
   <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}</div>
 </div>`);
   }
@@ -1018,13 +1088,20 @@ async function loadEpisode(file) {
     ytBtn.classList.remove('visible');
     dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
 
+    stopSync();
     const rightCol = document.createElement('div');
     rightCol.id = 'right-col';
-    rightCol.innerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe></div>`;
+    const ytWrap = document.createElement('div');
+    ytWrap.className = 'yt-wrap';
+    const ytDiv = document.createElement('div');
+    ytDiv.id = 'yt-player';
+    ytWrap.appendChild(ytDiv);
+    rightCol.appendChild(ytWrap);
     rightCol.appendChild(document.getElementById('vocab-view'));
     rightCol.appendChild(document.getElementById('quiz-view'));
     rightCol.appendChild(document.getElementById('saved-view'));
     mainEl.appendChild(rightCol);
+    createYtPlayer(ytId);
   } else {
     // Mobile: toggle button shows/hides video above script
     ytBtn.classList.toggle('visible', !!ytId);
@@ -1061,6 +1138,11 @@ async function loadEpisode(file) {
 // ── init (runs once) ──────────────────────────────────────
 async function init() {
   loadBookmarks();
+
+  // ── Load YouTube IFrame API
+  const ytScript = document.createElement('script');
+  ytScript.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(ytScript);
 
   // ── Load episodes list
   let episodes = [{ id:'S1E01', label:'S1 · E01', file:'data/ep01.json' }];
@@ -1152,6 +1234,13 @@ async function init() {
     if (pb) { speak(pb.dataset.jp, pb); return; }
     const w = e.target.closest('.w');
     if (w) { openPanel(w.dataset.b); return; }
+    // Click script line → seek video to timestamp
+    const sl = e.target.closest('.script-line[data-start]');
+    if (sl && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+      ytPlayer.seekTo(+sl.dataset.start / 1000, true);
+      ytPlayer.playVideo();
+      return;
+    }
     const vc = e.target.closest('.vc');
     if (vc) {
       // On desktop+video, dialogue is always visible — no need to switch tab

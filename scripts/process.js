@@ -174,7 +174,7 @@ function parseSrt(jpPath, enPath) {
         const character = normalizeCharName(soloCharMatch[1]);
         const jp = (lines[i + 1] || '').trim();
         if (jp && containsJapanese(jp)) {
-          items.push({ id: id++, character, jp, en });
+          items.push({ id: id++, character, jp, en, startMs: block.startMs, endMs: block.endMs });
         }
         i += 2;
         continue;
@@ -185,7 +185,7 @@ function parseSrt(jpPath, enPath) {
         const character = normalizeCharName(inlineCharMatch[1]);
         const jp = inlineCharMatch[2].trim();
         if (jp && containsJapanese(jp)) {
-          items.push({ id: id++, character, jp, en });
+          items.push({ id: id++, character, jp, en, startMs: block.startMs, endMs: block.endMs });
         }
         i++;
         continue;
@@ -201,7 +201,7 @@ function parseSrt(jpPath, enPath) {
         if (containsJapanese(next)) plainParts.push(next);
         i++;
       }
-      items.push({ id: id++, character: '', jp: plainParts.join(''), en });
+      items.push({ id: id++, character: '', jp: plainParts.join(''), en, startMs: block.startMs, endMs: block.endMs });
     }
   }
 
