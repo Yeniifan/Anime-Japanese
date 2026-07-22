@@ -329,12 +329,16 @@
       flex: 1; min-width: 0;
     }
     .yt-side {
-      width: 640px; flex-shrink: 0;
-      position: sticky; top: 68px; /* below sticky header */
+      width: 520px; flex-shrink: 0;
+      position: sticky; top: 68px;
+      max-height: calc(100vh - 80px); overflow-y: auto;
     }
     .yt-side .yt-wrap { margin-bottom: 8px; }
     /* Hide toggle button on desktop — video is always in the side panel */
     .btn-yt { display: none !important; }
+    /* vocab/quiz inside .yt-side strip extra padding */
+    main.has-video #vocab-view,
+    main.has-video #quiz-view { padding: 0; }
   }
 
   .loading { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
@@ -850,16 +854,26 @@ async function loadEpisode(file) {
 
   // ── dialogue
   const dv = document.getElementById('dialogue-view');
+
+  // Rescue #vocab-view / #quiz-view from .yt-side before wiping dv
+  const _vv = document.getElementById('vocab-view');
+  const _qv = document.getElementById('quiz-view');
+  if (_vv && _vv.parentElement !== mainEl) mainEl.appendChild(_vv);
+  if (_qv && _qv.parentElement !== mainEl) mainEl.appendChild(_qv);
+
   dv.innerHTML = '';
   dv.classList.toggle('has-video', !!(ytId && isDesktop));
 
   if (ytId && isDesktop) {
-    // Desktop: script left, video right (sticky)
+    // Desktop: script left, video + vocab/quiz right (sticky)
     ytBtn.classList.remove('visible');
     dv.appendChild(buildDialogue(data.lines, data.title.split(' / ')[0]));
     const ytSide = document.createElement('div');
     ytSide.className = 'yt-side';
     ytSide.innerHTML = `<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0" allowfullscreen allow="autoplay"></iframe></div>`;
+    // Move vocab and quiz panels into the right column
+    ytSide.appendChild(document.getElementById('vocab-view'));
+    ytSide.appendChild(document.getElementById('quiz-view'));
     dv.appendChild(ytSide);
   } else {
     // Mobile: toggle button shows/hides video above script
@@ -880,8 +894,12 @@ async function loadEpisode(file) {
   // ── quiz view reset
   document.getElementById('quiz-view').innerHTML = '';
 
-  // Switch to dialogue tab
-  document.querySelector('[data-tab="dialogue"]').click();
+  // On desktop+video: default to vocab tab (shows in right panel); else dialogue
+  if (ytId && isDesktop) {
+    document.querySelector('[data-tab="vocab"]').click();
+  } else {
+    document.querySelector('[data-tab="dialogue"]').click();
+  }
 
   // Close any open panel
   closePanel();
@@ -911,9 +929,21 @@ async function init() {
   document.querySelectorAll('.tab').forEach(tab =>
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById(tab.dataset.tab + '-view').classList.add('active');
+
+      const desktopVideo = !!document.querySelector('main.has-video');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+      if (desktopVideo) {
+        // Dialogue always stays active (flex layout); vocab/quiz appear in .yt-side
+        document.getElementById('dialogue-view').classList.add('active');
+        if (tab.dataset.tab !== 'dialogue') {
+          document.getElementById(tab.dataset.tab + '-view').classList.add('active');
+        }
+      } else {
+        document.getElementById(tab.dataset.tab + '-view').classList.add('active');
+      }
+
       if (tab.dataset.tab === 'quiz' && !quizInitialized) {
         quizInitialized = true;
         showQuestion(0);
@@ -968,7 +998,10 @@ async function init() {
     if (w) { openPanel(w.dataset.b); return; }
     const vc = e.target.closest('.vc');
     if (vc) {
-      document.querySelector('[data-tab="dialogue"]').click();
+      // On desktop+video, dialogue is always visible — no need to switch tab
+      if (!document.querySelector('main.has-video')) {
+        document.querySelector('[data-tab="dialogue"]').click();
+      }
       openPanel(vc.dataset.base);
     }
   });
