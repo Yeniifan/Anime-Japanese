@@ -117,7 +117,7 @@
     color: #D1D5DB; margin: 0 8px 0 4px; flex-shrink: 0;
     font-size: 14px; padding-top: 14px;
   }
-  .line-body { flex: 1; min-width: 0; }
+  .line-body { flex: 1; min-width: 0; padding-right: 72px; }
   .jp-text { font-size: 17px; line-height: 2.6; }
   .line-en {
     font-size: 12px; color: #9CA3AF; line-height: 1.6;
@@ -369,14 +369,17 @@
     border-left: 3px solid #3B82F6;
     padding-left: 4px; border-radius: 0 4px 4px 0;
   }
-  /* Seek button — pill at end of flex row */
+  /* Seek button — absolute positioned at right of each line */
+  .script-line { position: relative; }
   .seek-btn {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
     border: none; background: #F3F4F6; cursor: pointer;
     font-size: 11px; color: #6B7280;
     padding: 2px 8px; border-radius: 999px;
-    white-space: nowrap; flex-shrink: 0; align-self: center;
+    white-space: nowrap;
     font-family: ui-monospace, monospace;
     transition: background .15s, color .15s;
+    z-index: 1;
   }
   .seek-btn:hover { background: #DBEAFE; color: #2563EB; }
   .btn-yt {
@@ -744,6 +747,7 @@ function buildDialogue(lines, titleJa) {
       ? ` data-start="${startMs}" data-end="${endMs}"` : '';
     const seekBtn = startMs != null
       ? `<button class="seek-btn" title="影片跳至此處">→ ${msToTime(startMs)}</button>` : '';
+    if (startMs != null && buf.length < 3) console.log('[seek] generated:', seekBtn.slice(0,60));
     buf.push(`<div class="script-line${thought ? ' is-thought' : ''}"${timeAttrs}>
   <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}</div>${seekBtn}
 </div>`);
