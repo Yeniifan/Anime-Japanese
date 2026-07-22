@@ -272,7 +272,26 @@ function kata2hira(s) {
   }
   console.log('✏️  ZH_SEED applied');
 
-  // 5. 輸出
+  // 5. 合併 dict-zh-supplement.json（補充中文定義）
+  const suppPath = path.join(__dirname, '../data/dict-zh-supplement.json');
+  if (fs.existsSync(suppPath)) {
+    const supp = JSON.parse(fs.readFileSync(suppPath, 'utf8'));
+    let patched = 0;
+    for (const [word, data] of Object.entries(supp)) {
+      if (!data.zh || !data.zh.length) continue;
+      if (dict[word]) {
+        dict[word].zh = data.zh;
+      } else {
+        dict[word] = { zh: data.zh, en: [], reading: '', pitch: null };
+      }
+      patched++;
+    }
+    console.log(`📦 supplement: ${patched} 詞已合併`);
+  } else {
+    console.log('ℹ  data/dict-zh-supplement.json 不存在，跳過合併');
+  }
+
+  // 6. 輸出
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
   fs.writeFileSync(OUTPUT, JSON.stringify(dict), 'utf8');
 
