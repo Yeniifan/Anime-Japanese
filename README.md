@@ -15,6 +15,9 @@ This is a personal project for reading SPY×FAMILY dialogue with furigana, vocab
 - **Fill-in-the-blank quiz** — practice recalling vocabulary in context, in episode order
 - **Text-to-speech** — play button on each line reads the Japanese aloud (uses browser built-in TTS)
 - **Episode selector** — switch between episodes from the top-left dropdown
+- **Word bookmarks** — click any vocabulary word to save it; bookmarks persist across sessions via localStorage and can be exported as a CSV (Anki-compatible)
+- **Timestamp sync** — on desktop with video, the current dialogue line is highlighted as the video plays; click `→ MM:SS` at the end of any line to seek the video to that moment
+- **Desktop layout** — on wider screens, the YouTube video, vocabulary, and quiz panels appear in a fixed right column alongside the scrollable dialogue
 
 ## Data pipeline
 
@@ -25,6 +28,8 @@ subtitles/S1E07.ja.srt + S1E07.en.srt   ← Netflix CC subtitles from kitsunekko
        ↓  node scripts/add_episode.js S1E07
 data/ep07.json  +  data/episodes.json
 ```
+
+All episodes (S1E01–S1E24) use SRT format and include per-line timestamps (`startMs`/`endMs`) for video sync.
 
 ### Adding a new episode
 

@@ -745,11 +745,8 @@ function buildDialogue(lines, titleJa) {
     const endMs   = grp.lines[grp.lines.length - 1].endMs;
     const timeAttrs = startMs != null
       ? ` data-start="${startMs}" data-end="${endMs}"` : '';
-    const seekBtn = startMs != null
-      ? `<button class="seek-btn" title="影片跳至此處">→ ${msToTime(startMs)}</button>` : '';
-    if (startMs != null && buf.length < 3) console.log('[seek] generated:', seekBtn.slice(0,60));
     buf.push(`<div class="script-line${thought ? ' is-thought' : ''}"${timeAttrs}>
-  <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}</div>${seekBtn}
+  <button class="play-btn" data-jp="${esc(grp.jpAll)}" title="読み上げ">▶</button>${charHtml}<div class="line-body">${bodyHtml}</div>
 </div>`);
   }
   const div = document.createElement('div');
@@ -763,6 +760,14 @@ function buildDialogue(lines, titleJa) {
   const content = document.createElement('div');
   content.className = 'script-content';
   content.innerHTML = buf.join('');
+  // Add seek buttons via DOM (bypasses any HTML-parse issues)
+  content.querySelectorAll('.script-line[data-start]').forEach(el => {
+    const btn = document.createElement('button');
+    btn.className = 'seek-btn';
+    btn.title = '影片跳至此處';
+    btn.textContent = '→ ' + msToTime(+el.dataset.start);
+    el.appendChild(btn);
+  });
   div.appendChild(content);
   return div;
 }
