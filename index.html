@@ -349,6 +349,79 @@
   }
   .saved-export-btn:hover { border-color: #9CA3AF; color: var(--text); }
 
+  /* ── Review (SRS) ───────────────────────────── */
+  .tab-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 1;
+    background: #F59E0B; color: white;
+    margin-left: 4px; vertical-align: middle;
+  }
+  .rv-header {
+    text-align: center; padding: 20px 16px 12px;
+  }
+  .rv-today {
+    font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+  }
+  .rv-today span { color: #F59E0B; }
+  .rv-sub { font-size: 13px; color: var(--text-sub); }
+  .rv-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 20px 20px;
+    max-width: 560px; margin: 0 auto 12px;
+    text-align: center; position: relative;
+  }
+  .rv-progress {
+    font-size: 11px; color: var(--text-sub);
+    position: absolute; top: 12px; right: 14px;
+  }
+  .rv-word {
+    font-size: 40px; font-weight: 700; margin-bottom: 6px; letter-spacing: -1px;
+  }
+  .rv-hint {
+    font-size: 12px; color: var(--text-sub); margin-bottom: 16px;
+  }
+  .rv-reveal-btn {
+    padding: 8px 24px; border-radius: 999px;
+    background: #F3F4F6; border: 1px solid var(--border);
+    font-size: 13px; font-family: inherit; cursor: pointer;
+    color: var(--text-sub); transition: all .15s;
+  }
+  .rv-reveal-btn:hover { border-color: #9CA3AF; color: var(--text); }
+  .rv-back { display: none; border-top: 1px solid var(--border); margin-top: 18px; padding-top: 16px; text-align: left; }
+  .rv-back.visible { display: block; }
+  .rv-reading { font-size: 15px; color: var(--text-sub); margin-bottom: 8px; text-align: center; }
+  .rv-zh { font-size: 18px; font-weight: 600; margin-bottom: 12px; text-align: center; }
+  .rv-ex {
+    font-size: 14px; line-height: 2; color: var(--text-sub);
+    border-left: 3px solid #FDE68A; padding-left: 10px;
+    background: #FFFBEB; border-radius: 0 4px 4px 0;
+  }
+  .rv-btns { display: flex; gap: 10px; margin-top: 14px; }
+  .rv-btn {
+    flex: 1; padding: 10px; border-radius: 999px;
+    font-size: 14px; font-family: inherit; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .rv-btn-wrong {
+    background: white; border: 1px solid #E5E7EB; color: #6B7280;
+  }
+  .rv-btn-wrong:hover { border-color: #EF4444; color: #EF4444; }
+  .rv-btn-correct {
+    background: #111827; border: 1px solid #111827; color: white;
+  }
+  .rv-btn-correct:hover { background: #374151; }
+  .rv-done {
+    text-align: center; padding: 48px 20px;
+  }
+  .rv-done-icon { font-size: 40px; margin-bottom: 12px; }
+  .rv-done-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .rv-done-sub { font-size: 13px; color: var(--text-sub); margin-bottom: 24px; }
+  .rv-empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-sub); font-size: 14px; line-height: 1.8;
+  }
+
   /* ── YouTube embed ──────────────────────────── */
   .yt-wrap {
     position: relative; width: 100%; padding-bottom: 56.25%; /* 16:9 */
@@ -489,6 +562,7 @@
       <button class="tab" data-tab="vocab">語彙</button>
       <button class="tab" data-tab="quiz">練習</button>
       <button class="tab" data-tab="saved">收藏</button>
+      <button class="tab" data-tab="review">複習<span class="tab-badge" id="review-badge" style="display:none"></span></button>
     </div>
   </div>
 </header>
@@ -511,6 +585,7 @@
   </div>
   <div class="view" id="quiz-view"></div>
   <div class="view" id="saved-view"><div id="saved-list"></div></div>
+  <div class="view" id="review-view"></div>
 </main>
 
 <footer style="text-align:center;padding:16px 20px;font-size:11px;color:#9CA3AF;border-top:1px solid #F3F4F6;margin-top:8px">
@@ -551,6 +626,7 @@ let epData    = null;
 let vocabBases = null;  // Set of word bases in vocabulary (for clickability)
 let fgOn = true;
 let bookmarks = {};  // { [word]: { word, reading, pitch, pos, zh, en, episode, exampleJp, exampleEn, savedAt } }
+let srs = {};        // { [word]: { interval, dueAt, lapses } }
 
 // ── Quiz state ────────────────────────────────────────────
 let quizQuestions   = [];
@@ -805,6 +881,146 @@ function saveBookmarks() {
   localStorage.setItem('animejp_bookmarks', JSON.stringify(bookmarks));
 }
 
+// ── SRS (Spaced Repetition) ───────────────────────────────
+function loadSrs() {
+  try { srs = JSON.parse(localStorage.getItem('animejp_srs') || '{}'); }
+  catch { srs = {}; }
+}
+function saveSrs() {
+  localStorage.setItem('animejp_srs', JSON.stringify(srs));
+}
+function initSrsWord(word) {
+  if (!srs[word]) srs[word] = { interval: 0, dueAt: Date.now(), lapses: 0 };
+}
+function getDueWords() {
+  const now = Date.now();
+  return Object.keys(bookmarks).filter(w => srs[w] && srs[w].dueAt <= now);
+}
+function answerSrs(word, correct) {
+  const s = srs[word] || { interval: 0, dueAt: 0, lapses: 0 };
+  if (correct) {
+    const next = s.interval === 0 ? 1 : Math.min(Math.round(s.interval * 2.5), 60);
+    s.interval = next;
+    s.dueAt = Date.now() + next * 86400000;
+  } else {
+    s.lapses = (s.lapses || 0) + 1;
+    s.interval = 0;
+    s.dueAt = Date.now(); // due again immediately next session
+  }
+  srs[word] = s;
+  saveSrs();
+}
+function updateReviewBadge() {
+  const badge = document.getElementById('review-badge');
+  if (!badge) return;
+  const n = getDueWords().length;
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+// ── Review card state ─────────────────────────────────────
+let reviewQueue = [];
+let reviewIdx   = 0;
+
+function buildReviewView() {
+  const el = document.getElementById('review-view');
+  const due = getDueWords();
+  const total = Object.keys(bookmarks).length;
+
+  if (total === 0) {
+    el.innerHTML = `<div class="rv-empty">還沒有收藏的單字<br>點擊詞彙後按 ☆ 加入收藏</div>`;
+    return;
+  }
+
+  reviewQueue = due.slice();
+  reviewIdx   = 0;
+
+  if (reviewQueue.length === 0) {
+    // Find next due date
+    const next = Object.keys(bookmarks)
+      .filter(w => srs[w])
+      .map(w => srs[w].dueAt)
+      .filter(t => t > Date.now())
+      .sort((a, b) => a - b)[0];
+    const nextStr = next
+      ? (() => {
+          const d = Math.ceil((next - Date.now()) / 86400000);
+          return d <= 1 ? '明天' : `${d} 天後`;
+        })()
+      : '';
+    el.innerHTML = `
+      <div class="rv-done">
+        <div class="rv-done-icon">🎉</div>
+        <div class="rv-done-title">今日複習完成！</div>
+        <div class="rv-done-sub">共收藏 ${total} 個單字${nextStr ? `，下次複習：${nextStr}` : ''}</div>
+      </div>`;
+    return;
+  }
+
+  // Header showing today's count
+  el.innerHTML = `
+    <div class="rv-header">
+      <div class="rv-today">今日複習 <span>${reviewQueue.length}</span> 個</div>
+      <div class="rv-sub">共收藏 ${total} 個單字</div>
+    </div>
+    <div id="rv-card-wrap"></div>`;
+
+  showReviewCard(0);
+}
+
+function showReviewCard(idx) {
+  const wrap = document.getElementById('rv-card-wrap');
+  if (!wrap) return;
+
+  if (idx >= reviewQueue.length) {
+    // All done
+    wrap.innerHTML = `
+      <div class="rv-done">
+        <div class="rv-done-icon">✨</div>
+        <div class="rv-done-title">全部完成！</div>
+        <div class="rv-done-sub">今日 ${reviewQueue.length} 個全部複習完畢</div>
+      </div>`;
+    updateReviewBadge();
+    return;
+  }
+
+  const word  = reviewQueue[idx];
+  const bm    = bookmarks[word];
+  if (!bm) { showReviewCard(idx + 1); return; }
+
+  const zhStr = bm.zh.slice(0, 3).join(' · ') || '—';
+  wrap.innerHTML = `
+    <div class="rv-card">
+      <div class="rv-progress">${idx + 1} / ${reviewQueue.length}</div>
+      <div class="rv-word">${esc(bm.word)}</div>
+      <div class="rv-hint">${esc(bm.episode)} · ${bm.pos ? POS_ZH[bm.pos] || bm.pos : ''}</div>
+      <button class="rv-reveal-btn" id="rv-reveal">顯示解釋</button>
+      <div class="rv-back" id="rv-back">
+        <div class="rv-reading">${esc(bm.reading)}${bm.pitch !== null ? ` [${bm.pitch}]` : ''}</div>
+        <div class="rv-zh">${esc(zhStr)}</div>
+        ${bm.exampleJp ? `<div class="rv-ex">${esc(bm.exampleJp)}</div>` : ''}
+        <div class="rv-btns">
+          <button class="rv-btn rv-btn-wrong" id="rv-wrong">✗ 再複習</button>
+          <button class="rv-btn rv-btn-correct" id="rv-correct">✓ 記得了</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('rv-reveal').addEventListener('click', () => {
+    document.getElementById('rv-back').classList.add('visible');
+  });
+  document.getElementById('rv-correct').addEventListener('click', () => {
+    answerSrs(word, true);
+    showReviewCard(idx + 1);
+  });
+  document.getElementById('rv-wrong').addEventListener('click', () => {
+    answerSrs(word, false);
+    // Push to end of queue so they see it again this session
+    reviewQueue.push(word);
+    showReviewCard(idx + 1);
+  });
+}
+
 function toggleBookmark(base) {
   if (bookmarks[base]) {
     delete bookmarks[base];
@@ -820,10 +1036,13 @@ function toggleBookmark(base) {
       exampleEn: exLine ? exLine.en : '',
       savedAt: Date.now()
     };
+    initSrsWord(base);
+    saveSrs();
   }
   saveBookmarks();
   updateBookmarkBtn(base);
   updateWordHighlights();
+  updateReviewBadge();
   if (document.getElementById('saved-view').classList.contains('active')) buildSavedView();
 }
 
@@ -1125,6 +1344,7 @@ async function loadEpisode(file) {
     rightCol.appendChild(document.getElementById('vocab-view'));
     rightCol.appendChild(document.getElementById('quiz-view'));
     rightCol.appendChild(document.getElementById('saved-view'));
+    rightCol.appendChild(document.getElementById('review-view'));
     mainEl.appendChild(rightCol);
     createYtPlayer(ytId);
   } else {
@@ -1163,6 +1383,11 @@ async function loadEpisode(file) {
 // ── init (runs once) ──────────────────────────────────────
 async function init() {
   loadBookmarks();
+  loadSrs();
+  // Back-fill SRS for any bookmarks that predate this feature
+  Object.keys(bookmarks).forEach(w => initSrsWord(w));
+  saveSrs();
+  updateReviewBadge();
 
   // ── Load YouTube IFrame API
   const ytScript = document.createElement('script');
@@ -1196,9 +1421,9 @@ async function init() {
       const desktopVideo = !!document.querySelector('main.has-video');
 
       if (desktopVideo) {
-        // Dialogue always visible (CSS); only toggle vocab/quiz/saved in #right-col
-        document.querySelectorAll('#vocab-view, #quiz-view, #saved-view').forEach(v => v.classList.remove('active'));
-        if (['vocab','quiz','saved'].includes(tab.dataset.tab)) {
+        // Dialogue always visible (CSS); only toggle vocab/quiz/saved/review in #right-col
+        document.querySelectorAll('#vocab-view, #quiz-view, #saved-view, #review-view').forEach(v => v.classList.remove('active'));
+        if (['vocab','quiz','saved','review'].includes(tab.dataset.tab)) {
           document.getElementById(tab.dataset.tab + '-view').classList.add('active');
         }
       } else {
@@ -1211,6 +1436,7 @@ async function init() {
         showQuestion(0);
       }
       if (tab.dataset.tab === 'saved') buildSavedView();
+      if (tab.dataset.tab === 'review') buildReviewView();
     })
   );
 
